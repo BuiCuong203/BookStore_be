@@ -1,0 +1,41 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  jackson:
+    time-zone: "Asia/Ho_Chi_Minh"
+    date-format: "dd/MM/yyyy HH:mm:ss"
+  application:
+    name: "Book_Shop"
+  servlet:
+    datasource:
+      url: ${DB_URL}
+      driver: "com.mysql.cj.jdbc.Driver"
+      username: ${DB_USER}
+      password: ${DB_PASSWORD}
+    jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      format-sql: true
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+app:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN}
+
+jwt:
+  signerKey: ${JWT_SECRET}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
