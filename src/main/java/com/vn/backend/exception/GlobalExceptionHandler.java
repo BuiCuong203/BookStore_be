@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -31,7 +34,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, HttpServletRequest request) {
         ErrorResponse body = ErrorResponse.builder()
-                .code(status.value())
+                .statusCode(status.value())
                 .message(message)
                 .path(request.getRequestURI())
                 .timestamp(OffsetDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
@@ -47,7 +50,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex, HttpServletRequest request) {
-        HttpStatus status = ex.getStatusCode() != null ? ex.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
         String message = ex.getMessage() != null ? ex.getMessage() : status.getReasonPhrase();
         if (status.is5xxServerError()) {
             log.error("AppException({}): {}", status.value(), message, ex);
@@ -137,6 +143,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, "Access denied", request);
+    }
+
+    /* -------- User không tồn tại (Spring Security) -------- */
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException ex, HttpServletRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "User not found";
+        return build(HttpStatus.UNAUTHORIZED, message, request);
+    }
+
+    /* -------- Sai thông tin đăng nhập (Spring Security) -------- */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Invalid email or password";
+        return build(HttpStatus.UNAUTHORIZED, message, request);
+    }
+
+    /* -------- Lỗi xác thực chung (Spring Security) -------- */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Authentication failed";
+        return build(HttpStatus.UNAUTHORIZED, message, request);
     }
 
     /* -------------------- Fallback -------------------- */

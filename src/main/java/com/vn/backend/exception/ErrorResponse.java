@@ -15,7 +15,7 @@ import java.time.OffsetDateTime;
 public class ErrorResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     @Schema(type = "string", example = "dd-MM-yyyy HH:mm:ss")
-    int code;
+    int statusCode;
     String message;
     String path;
     OffsetDateTime timestamp;

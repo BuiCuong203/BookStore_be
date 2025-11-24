@@ -1,0 +1,18 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format-sql: false
+
+jobs:
+  cleanup:
+    cron: "0 0 3 * * *"
+    zone: "Asia/Ho_Chi_Minh"
+
+logging:
+  level:
+    org.hibernate.SQL: warn

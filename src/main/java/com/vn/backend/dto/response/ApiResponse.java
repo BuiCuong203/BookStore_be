@@ -3,7 +3,6 @@ package com.vn.backend.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 
 @Data
 @Builder
@@ -13,7 +12,7 @@ import org.springframework.http.HttpStatus;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     @Builder.Default
-    HttpStatus statusCode = HttpStatus.OK;
+    int statusCode = 200;
 
     String message;
 

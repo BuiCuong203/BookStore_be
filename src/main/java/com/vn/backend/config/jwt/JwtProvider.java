@@ -11,70 +11,89 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class JwtProvider {
+    @Value("${jwt.accessExpMs}")
+    private long accessExpMs;
+
+    @Value("${jwt.refreshExpMs}")
+    private long refreshExpMs;
+
     @Value("${jwt.signerKey}")
     private String secretKey;
 
-    public String generateToken(Authentication auth) {
+    public String generateAccessToken(Authentication auth) {
         String email = auth.getName();
+
         List<String> roles = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(a -> a.startsWith("ROLE_"))
                 .distinct()
                 .toList();
 
-        List<String> perms = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(a -> !a.startsWith("ROLE_"))
-                .distinct()
-                .toList();
-
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
-        String jwt = Jwts.builder()
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + 300000))
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + accessExpMs);
+
+        return Jwts.builder()
+                .setIssuedAt(now)
+                .setExpiration(expiry)
                 .claim("email", email)
                 .claim("roles", roles)
-                .claim("perms", perms)
                 .signWith(key)
                 .compact();
+    }
 
-        return jwt;
+    public String generateRefreshToken(String email) {
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + refreshExpMs);
+
+        return Jwts.builder()
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .claim("email", email)
+                .signWith(key)
+                .compact();
     }
 
     public String getEmailFromJwtToken(String jwt) {
         Claims claims = getClaimsFromToken(jwt);
-        String email = String.valueOf(claims.get("email"));
-
-        return email;
+        return claims.get("email", String.class);
     }
 
-    public Claims getClaimsFromToken(String jwt) {
+    public LocalDateTime getExpiredAt(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.getExpiration().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    public Claims getClaimsFromToken(String token) {
         try {
-            if (jwt.startsWith("Bearer ")) {
-                jwt = jwt.substring(7);
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
             }
 
             SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
-            Claims claims = Jwts.parser().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
-
-            return claims;
+            return Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
         } catch (ExpiredJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Token has expired", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token has expired", e);
         } catch (SignatureException | SecurityException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid token signature", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Invalid token signature", e);
         } catch (MalformedJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Token format is wrong", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token format is wrong", e);
         } catch (UnsupportedJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Token not supported", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token not supported", e);
         } catch (IllegalArgumentException e) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Invalid token", e);
+            throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid token", e);
         }
     }
 }

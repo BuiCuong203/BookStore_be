@@ -34,7 +34,7 @@ public class ImageUploadController {
     public ApiResponse<?> delete(@PathVariable String publicId) throws Exception {
         boolean ok = cloudinaryService.deleteByPublicId(publicId);
         return ok ?
-                ApiResponse.builder().statusCode(HttpStatus.NO_CONTENT).build() :
-                ApiResponse.builder().statusCode(HttpStatus.NOT_FOUND).build();
+                ApiResponse.builder().statusCode(HttpStatus.NO_CONTENT.value()).build() :
+                ApiResponse.builder().statusCode(HttpStatus.NOT_FOUND.value()).build();
     }
 }

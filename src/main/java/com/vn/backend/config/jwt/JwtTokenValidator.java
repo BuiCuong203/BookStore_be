@@ -1,6 +1,8 @@
 package com.vn.backend.config.jwt;
 
 import com.vn.backend.exception.AppException;
+import com.vn.backend.repository.InvalidTokenRepository;
+import com.vn.backend.service.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,17 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenValidator extends OncePerRequestFilter {
@@ -30,39 +28,46 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private InvalidTokenRepository invalidTokenRepository;
+
+    private boolean isTokenBlacklisted(String token) {
+        return invalidTokenRepository.findById(token).isPresent();
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            String jwt = getJwtFromRequest(request);
+        String jwt = getJwtFromRequest(request);
 
-            if (jwt != null && jwtProvider.getClaimsFromToken(jwt) != null) {
-                Claims claims = jwtProvider.getClaimsFromToken(jwt);
+        // Không có token → bỏ qua, để các filter khác xử lý (public API vẫn chạy được)
+        if (!StringUtils.hasText(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-                String email = claims.get("email", String.class);
-                List<String> rolesList = claims.get("roles", List.class);
-                List<String> permsList = claims.get("perms", List.class);
+        if (isTokenBlacklisted(jwt)) {
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Invalid token");
+        }
 
-                List<GrantedAuthority> authorities = new ArrayList<>();
+        Claims claims = jwtProvider.getClaimsFromToken(jwt);
+        String email = claims.get("email", String.class);
 
-                if (rolesList != null && !rolesList.isEmpty()) {
-                    authorities.addAll(rolesList.stream()
-                            .map(role -> new SimpleGrantedAuthority(role))
-                            .collect(Collectors.toList()));
-                }
+        // Chỉ set auth nếu chưa có trong context
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // Nạp lại UserDetails từ DB (bao gồm roles + permissions)
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-                if (permsList != null && !permsList.isEmpty()) {
-                    authorities.addAll(permsList.stream()
-                            .map(perm -> new SimpleGrantedAuthority(perm))
-                            .collect(Collectors.toList())
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
                     );
-                }
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Token not found", e);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);
     }

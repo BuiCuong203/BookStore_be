@@ -20,7 +20,7 @@ public class SwaggerConfig {
                         .description("API for managing book store operations")
                         .version("1.0.0")
                         .license(new License().name("Api liecense").url("https://www.apache.org/licenses/LICENSE-2.0")))
-                .servers(List.of(new Server().url("http://localhost:8080").description("Local server for development")))
+                .servers(List.of(new Server().url("http://localhost:8081").description("Local server for development")))
                 .security(List.of(new SecurityRequirement().addList("bearerAuth")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
