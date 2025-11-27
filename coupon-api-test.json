@@ -1,0 +1,470 @@
+{
+  "coupon_api_tests": {
+    "description": "Test API endpoints for Coupon CRUD operations",
+    "base_url": "http://localhost:8080/api/v1",
+
+    "discount_types": {
+      "PERCENTAGE": "Discount as percentage (e.g., 10 means 10% off)",
+      "FIXED": "Fixed amount discount (e.g., 50000 means 50,000 VND off)"
+    },
+
+    "1_create_coupon": {
+      "method": "POST",
+      "endpoint": "/coupons",
+      "description": "Create a new coupon (Admin only)",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "code": "SUMMER2024",
+        "description": "Summer sale - 20% off all books",
+        "stockQuantity": 100,
+        "discountType": "PERCENTAGE",
+        "discount": 20
+      },
+      "expected_response": {
+        "statusCode": 201,
+        "message": "Coupon created successfully",
+        "data": {
+          "id": 1,
+          "code": "SUMMER2024",
+          "description": "Summer sale - 20% off all books",
+          "stockQuantity": 100,
+          "discountType": "PERCENTAGE",
+          "discount": 20,
+          "createdAt": "2024-11-27T10:00:00",
+          "updatedAt": "2024-11-27T10:00:00"
+        }
+      }
+    },
+
+    "2_create_fixed_coupon": {
+      "method": "POST",
+      "endpoint": "/coupons",
+      "description": "Create coupon with fixed discount",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "code": "NEWYEAR50K",
+        "description": "New Year - Get 50,000 VND off",
+        "stockQuantity": 50,
+        "discountType": "FIXED",
+        "discount": 50000
+      },
+      "expected_response": {
+        "statusCode": 201,
+        "message": "Coupon created successfully",
+        "data": {
+          "id": 2,
+          "code": "NEWYEAR50K",
+          "discountType": "FIXED",
+          "discount": 50000
+        }
+      }
+    },
+
+    "3_get_all_coupons": {
+      "method": "GET",
+      "endpoint": "/coupons/admin/all",
+      "description": "Get all coupons with pagination (Admin only)",
+      "auth_required": true,
+      "query_params": {
+        "page": 0,
+        "size": 10,
+        "sortBy": "createdAt",
+        "sortDir": "DESC"
+      },
+      "example_url": "/coupons/admin/all?page=0&size=10&sortBy=createdAt&sortDir=DESC",
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupons retrieved successfully",
+        "data": {
+          "content": [],
+          "totalElements": 0,
+          "totalPages": 0
+        }
+      }
+    },
+
+    "4_get_available_coupons": {
+      "method": "GET",
+      "endpoint": "/coupons/available",
+      "description": "Get all available coupons (stock > 0) - Public access",
+      "auth_required": false,
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Available coupons retrieved successfully",
+        "data": [
+          {
+            "id": 1,
+            "code": "SUMMER2024",
+            "stockQuantity": 100
+          }
+        ]
+      }
+    },
+
+    "5_get_coupon_by_id": {
+      "method": "GET",
+      "endpoint": "/coupons/{id}",
+      "description": "Get a single coupon by its ID",
+      "example_endpoint": "/coupons/1",
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupon retrieved successfully",
+        "data": {
+          "id": 1,
+          "code": "SUMMER2024",
+          "description": "Summer sale - 20% off all books",
+          "stockQuantity": 100,
+          "discountType": "PERCENTAGE",
+          "discount": 20
+        }
+      }
+    },
+
+    "6_get_coupon_by_code": {
+      "method": "GET",
+      "endpoint": "/coupons/code/{code}",
+      "description": "Get a coupon by its code",
+      "example_endpoint": "/coupons/code/SUMMER2024",
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupon retrieved successfully",
+        "data": {
+          "code": "SUMMER2024",
+          "discountType": "PERCENTAGE",
+          "discount": 20
+        }
+      }
+    },
+
+    "7_validate_coupon": {
+      "method": "POST",
+      "endpoint": "/coupons/validate",
+      "description": "Check if coupon is valid and available",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "couponCode": "SUMMER2024"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupon is valid and available",
+        "data": {
+          "code": "SUMMER2024",
+          "stockQuantity": 100
+        }
+      }
+    },
+
+    "8_calculate_discount": {
+      "method": "POST",
+      "endpoint": "/coupons/calculate",
+      "description": "Calculate discount amount for a coupon",
+      "auth_required": true,
+      "query_params": {
+        "code": "SUMMER2024",
+        "amount": 500000
+      },
+      "example_url": "/coupons/calculate?code=SUMMER2024&amount=500000",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Discount calculated successfully",
+        "data": {
+          "originalAmount": 500000,
+          "discountAmount": 100000,
+          "finalAmount": 400000,
+          "couponCode": "SUMMER2024"
+        }
+      },
+      "examples": {
+        "percentage_20": {
+          "code": "SUMMER2024",
+          "amount": 500000,
+          "calculation": "500000 * 20% = 100000",
+          "finalAmount": 400000
+        },
+        "fixed_50k": {
+          "code": "NEWYEAR50K",
+          "amount": 500000,
+          "calculation": "500000 - 50000 = 450000",
+          "finalAmount": 450000
+        }
+      }
+    },
+
+    "9_update_coupon": {
+      "method": "PUT",
+      "endpoint": "/coupons/{id}",
+      "description": "Update an existing coupon (Admin only)",
+      "example_endpoint": "/coupons/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "description": "Updated description",
+        "stockQuantity": 150,
+        "discount": 25
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupon updated successfully",
+        "data": {
+          "id": 1,
+          "stockQuantity": 150,
+          "discount": 25
+        }
+      }
+    },
+
+    "10_delete_coupon": {
+      "method": "DELETE",
+      "endpoint": "/coupons/{id}",
+      "description": "Delete a coupon (Admin only)",
+      "example_endpoint": "/coupons/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Coupon deleted successfully"
+      }
+    },
+
+    "test_scenarios": {
+      "scenario_1_create_and_use_coupon": {
+        "description": "Complete coupon lifecycle from creation to usage",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Admin creates coupon",
+            "method": "POST",
+            "endpoint": "/coupons",
+            "body": {
+              "code": "WELCOME10",
+              "description": "Welcome discount - 10% off",
+              "stockQuantity": 10,
+              "discountType": "PERCENTAGE",
+              "discount": 10
+            }
+          },
+          {
+            "step": 2,
+            "action": "User views available coupons",
+            "method": "GET",
+            "endpoint": "/coupons/available"
+          },
+          {
+            "step": 3,
+            "action": "User validates coupon before checkout",
+            "method": "POST",
+            "endpoint": "/coupons/validate",
+            "body": {
+              "couponCode": "WELCOME10"
+            }
+          },
+          {
+            "step": 4,
+            "action": "Calculate discount for cart total",
+            "method": "POST",
+            "endpoint": "/coupons/calculate?code=WELCOME10&amount=300000"
+          },
+          {
+            "step": 5,
+            "action": "Create order with coupon (this will decrease stock)",
+            "note": "Order creation will call couponService.useCoupon() internally"
+          }
+        ]
+      },
+
+      "scenario_2_seasonal_campaign": {
+        "description": "Create seasonal promotion coupons",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Create Black Friday coupon",
+            "body": {
+              "code": "BLACKFRIDAY30",
+              "description": "Black Friday - 30% off everything",
+              "stockQuantity": 1000,
+              "discountType": "PERCENTAGE",
+              "discount": 30
+            }
+          },
+          {
+            "step": 2,
+            "action": "Create VIP fixed discount",
+            "body": {
+              "code": "VIP100K",
+              "description": "VIP Members - 100,000 VND off",
+              "stockQuantity": 100,
+              "discountType": "FIXED",
+              "discount": 100000
+            }
+          }
+        ]
+      },
+
+      "scenario_3_admin_management": [
+        {
+          "step": 1,
+          "action": "View all coupons",
+          "method": "GET",
+          "endpoint": "/coupons/admin/all"
+        },
+        {
+          "step": 2,
+          "action": "Check specific coupon usage",
+          "method": "GET",
+          "endpoint": "/coupons/code/SUMMER2024"
+        },
+        {
+          "step": 3,
+          "action": "Increase stock for popular coupon",
+          "method": "PUT",
+          "endpoint": "/coupons/1",
+          "body": {
+            "stockQuantity": 500
+          }
+        }
+      ]
+    },
+
+    "error_cases": {
+      "duplicate_code": {
+        "description": "Cannot create coupon with existing code",
+        "method": "POST",
+        "endpoint": "/coupons",
+        "body": {
+          "code": "SUMMER2024",
+          "stockQuantity": 10,
+          "discountType": "PERCENTAGE",
+          "discount": 10
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Coupon code already exists"
+        }
+      },
+
+      "invalid_percentage": {
+        "description": "Percentage discount cannot exceed 100%",
+        "method": "POST",
+        "endpoint": "/coupons",
+        "body": {
+          "code": "INVALID",
+          "stockQuantity": 10,
+          "discountType": "PERCENTAGE",
+          "discount": 150
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Percentage discount cannot exceed 100%"
+        }
+      },
+
+      "coupon_out_of_stock": {
+        "description": "Cannot use coupon with stock = 0",
+        "method": "POST",
+        "endpoint": "/coupons/validate",
+        "body": {
+          "couponCode": "SOLDOUT"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "This coupon has been used up"
+        }
+      },
+
+      "coupon_not_found": {
+        "method": "GET",
+        "endpoint": "/coupons/99999",
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Coupon not found"
+        }
+      },
+
+      "invalid_code_format": {
+        "description": "Coupon code must be uppercase letters, numbers, underscore and hyphen only",
+        "method": "POST",
+        "endpoint": "/coupons",
+        "body": {
+          "code": "invalid code!",
+          "stockQuantity": 10,
+          "discountType": "PERCENTAGE",
+          "discount": 10
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Coupon code must contain only uppercase letters, numbers, underscore and hyphen"
+        }
+      },
+
+      "missing_required_fields": {
+        "method": "POST",
+        "endpoint": "/coupons",
+        "body": {
+          "code": "TEST"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Validation failed"
+        }
+      }
+    },
+
+    "usage_examples": {
+      "valid_coupon_codes": [
+        "SUMMER2024",
+        "NEWYEAR_50K",
+        "BLACK-FRIDAY",
+        "VIP100",
+        "FIRST_ORDER"
+      ],
+
+      "discount_calculations": {
+        "example_1": {
+          "description": "20% off on 500,000 VND",
+          "coupon": "SUMMER2024 (PERCENTAGE, 20)",
+          "originalAmount": 500000,
+          "discountAmount": 100000,
+          "finalAmount": 400000
+        },
+        "example_2": {
+          "description": "Fixed 50,000 VND off",
+          "coupon": "NEWYEAR50K (FIXED, 50000)",
+          "originalAmount": 500000,
+          "discountAmount": 50000,
+          "finalAmount": 450000
+        },
+        "example_3": {
+          "description": "30% off on 1,000,000 VND",
+          "coupon": "BLACKFRIDAY30 (PERCENTAGE, 30)",
+          "originalAmount": 1000000,
+          "discountAmount": 300000,
+          "finalAmount": 700000
+        }
+      }
+    }
+  }
+}
+

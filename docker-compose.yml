@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  db:
+    image: mysql:8.0
+    container_name: my-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./src/main/resources/db/migration/V1__create_table.sql:/docker-entrypoint-initdb.d/V1__create_table.sql.sql

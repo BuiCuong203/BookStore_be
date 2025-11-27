@@ -1,0 +1,16 @@
+package com.vn.backend.repository;
+
+import com.vn.backend.model.Order;
+import com.vn.backend.model.OrderItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+    List<OrderItem> findByOrder(Order order);
+    List<OrderItem> findByOrderId(Long orderId);
+    void deleteByOrderId(Long orderId);
+}
+

@@ -1,0 +1,357 @@
+{
+  "api_test_collection": {
+    "description": "Complete API test collection for BookStore Backend",
+    "base_url": "http://localhost:8080/api/v1",
+    "note": "Replace YOUR_ACCESS_TOKEN and YOUR_ADMIN_TOKEN with actual tokens from login",
+
+    "authentication": {
+      "login": {
+        "method": "POST",
+        "endpoint": "/auth/login",
+        "body": {
+          "email": "admin@example.com",
+          "password": "password123"
+        },
+        "response": {
+          "accessToken": "eyJhbGc...",
+          "refreshToken": "eyJhbGc..."
+        }
+      }
+    },
+
+    "categories": {
+      "get_all": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/categories"
+      },
+      "get_by_id": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/categories/1"
+      },
+      "create": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/categories",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "name": "Fiction",
+          "parentId": null
+        }
+      },
+      "update": {
+        "method": "PUT",
+        "url": "http://localhost:8080/api/v1/categories/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "name": "Fiction Books"
+        }
+      },
+      "delete": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/categories/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+        }
+      }
+    },
+
+    "products": {
+      "get_all": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/products?page=0&size=10&sortBy=id&sortDir=DESC"
+      },
+      "get_by_id": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/products/1"
+      },
+      "create": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/products",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "categoryId": 1,
+          "name": "The Great Gatsby",
+          "shortDescription": "A classic American novel",
+          "description": "The Great Gatsby is a 1925 novel by American writer F. Scott Fitzgerald.",
+          "dimension": "21x14x2 cm",
+          "numberOfPages": 180,
+          "isbn": "978-0743273565",
+          "stockQuantity": 50,
+          "price": 150000,
+          "discount": 10,
+          "publisher": "Scribner",
+          "publisherDate": "2004-09-30"
+        }
+      },
+      "update": {
+        "method": "PUT",
+        "url": "http://localhost:8080/api/v1/products/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "price": 120000,
+          "discount": 20,
+          "stockQuantity": 75
+        }
+      },
+      "delete": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/products/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+        }
+      }
+    },
+
+    "cart": {
+      "get_cart": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/cart",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "add_to_cart": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/cart/items",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "productId": 1,
+          "quantity": 2
+        }
+      },
+      "update_cart_item": {
+        "method": "PUT",
+        "url": "http://localhost:8080/api/v1/cart/items/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "quantity": 5
+        }
+      },
+      "remove_cart_item": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/cart/items/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "clear_cart": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/cart",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      }
+    },
+
+    "orders": {
+      "create_order": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/orders",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "address": "123 Main Street, District 1, Ho Chi Minh City",
+          "methodPayment": "COD",
+          "note": "Please call before delivery"
+        }
+      },
+      "get_my_orders": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/orders/my-orders?page=0&size=10",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "get_order_by_id": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/orders/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "cancel_order": {
+        "method": "PUT",
+        "url": "http://localhost:8080/api/v1/orders/1/cancel",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "admin_get_all_orders": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/orders/admin/all?page=0&size=10",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+        }
+      },
+      "admin_get_orders_by_status": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/orders/admin/status/PENDING",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+        }
+      },
+      "admin_update_status": {
+        "method": "PUT",
+        "url": "http://localhost:8080/api/v1/orders/admin/1/status",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": "CONFIRMED"
+        }
+      },
+      "admin_delete_order": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/orders/admin/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+        }
+      }
+    },
+
+    "wishlist": {
+      "get_wishlist": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/wishlist",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "get_count": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/wishlist/count",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "check_product": {
+        "method": "GET",
+        "url": "http://localhost:8080/api/v1/wishlist/check/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "add_to_wishlist": {
+        "method": "POST",
+        "url": "http://localhost:8080/api/v1/wishlist",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "productId": 1
+        }
+      },
+      "remove_by_product_id": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/wishlist/product/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "remove_by_item_id": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/wishlist/item/1",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      },
+      "clear_wishlist": {
+        "method": "DELETE",
+        "url": "http://localhost:8080/api/v1/wishlist",
+        "headers": {
+          "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+        }
+      }
+    },
+
+    "curl_examples": {
+      "category_create": "curl -X POST http://localhost:8080/api/v1/categories -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"name\":\"Fiction\",\"parentId\":null}'",
+
+      "product_create": "curl -X POST http://localhost:8080/api/v1/products -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"categoryId\":1,\"name\":\"Test Book\",\"isbn\":\"123\",\"dimension\":\"20x15\",\"stockQuantity\":10,\"price\":100000,\"discount\":0,\"publisher\":\"Test\",\"publisherDate\":\"2024-01-01\"}'",
+
+      "add_to_cart": "curl -X POST http://localhost:8080/api/v1/cart/items -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"productId\":1,\"quantity\":2}'",
+
+      "get_cart": "curl -X GET http://localhost:8080/api/v1/cart -H \"Authorization: Bearer YOUR_TOKEN\"",
+
+      "update_cart_item": "curl -X PUT http://localhost:8080/api/v1/cart/items/1 -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"quantity\":3}'",
+
+      "create_order": "curl -X POST http://localhost:8080/api/v1/orders -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"address\":\"123 Main St\",\"methodPayment\":\"COD\"}'",
+
+      "get_my_orders": "curl -X GET http://localhost:8080/api/v1/orders/my-orders -H \"Authorization: Bearer YOUR_TOKEN\"",
+
+      "cancel_order": "curl -X PUT http://localhost:8080/api/v1/orders/1/cancel -H \"Authorization: Bearer YOUR_TOKEN\"",
+
+      "add_to_wishlist": "curl -X POST http://localhost:8080/api/v1/wishlist -H \"Authorization: Bearer YOUR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"productId\":1}'",
+
+      "get_wishlist": "curl -X GET http://localhost:8080/api/v1/wishlist -H \"Authorization: Bearer YOUR_TOKEN\"",
+
+      "check_in_wishlist": "curl -X GET http://localhost:8080/api/v1/wishlist/check/1 -H \"Authorization: Bearer YOUR_TOKEN\"",
+
+      "remove_from_wishlist": "curl -X DELETE http://localhost:8080/api/v1/wishlist/product/1 -H \"Authorization: Bearer YOUR_TOKEN\""
+    },
+
+    "postman_collection": {
+      "info": {
+        "name": "BookStore API Collection",
+        "description": "Complete API collection for testing"
+      },
+      "variable": [
+        {
+          "key": "base_url",
+          "value": "http://localhost:8080/api/v1"
+        },
+        {
+          "key": "access_token",
+          "value": "YOUR_ACCESS_TOKEN"
+        },
+        {
+          "key": "admin_token",
+          "value": "YOUR_ADMIN_TOKEN"
+        }
+      ]
+    },
+
+    "testing_workflow": {
+      "step_1": "Login to get access token",
+      "step_2": "Create categories (Admin)",
+      "step_3": "Create products under categories (Admin)",
+      "step_4": "Browse products (Public)",
+      "step_5": "Add products to cart (User)",
+      "step_6": "Update cart items (User)",
+      "step_7": "Create order from cart (User)",
+      "step_8": "Track order status (User)",
+      "step_9": "Admin manages orders",
+      "step_10": "Admin updates order status to DELIVERED"
+    },
+
+    "order_statuses": {
+      "PENDING": "Order has been placed and awaiting confirmation",
+      "CONFIRMED": "Order has been confirmed",
+      "PROCESSING": "Order is being prepared",
+      "SHIPPING": "Order is out for delivery",
+      "DELIVERED": "Order has been delivered",
+      "CANCELLED": "Order has been cancelled"
+    }
+  }
+}
