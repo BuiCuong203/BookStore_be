@@ -1,0 +1,431 @@
+{
+  "wishlist_api_tests": {
+    "description": "Test API endpoints for WishList CRUD operations",
+    "base_url": "http://localhost:8080/api/v1",
+    "note": "All wishlist endpoints require authentication",
+
+    "1_get_wishlist": {
+      "method": "GET",
+      "endpoint": "/wishlist",
+      "description": "Get current user's wishlist",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Wishlist retrieved successfully",
+        "data": {
+          "userId": 1,
+          "userName": "John Doe",
+          "items": [
+            {
+              "id": 1,
+              "productId": 5,
+              "productName": "The Great Gatsby",
+              "productPrice": 150000,
+              "productDiscount": 10,
+              "finalPrice": 135000,
+              "stockQuantity": 50,
+              "inStock": true
+            }
+          ],
+          "totalItems": 1
+        }
+      }
+    },
+
+    "2_get_wishlist_count": {
+      "method": "GET",
+      "endpoint": "/wishlist/count",
+      "description": "Get total items in wishlist",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Wishlist count retrieved successfully",
+        "data": {
+          "count": 5
+        }
+      }
+    },
+
+    "3_check_product_in_wishlist": {
+      "method": "GET",
+      "endpoint": "/wishlist/check/{productId}",
+      "description": "Check if a product is in user's wishlist",
+      "example_endpoint": "/wishlist/check/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Check completed successfully",
+        "data": {
+          "inWishList": true
+        }
+      }
+    },
+
+    "4_add_to_wishlist": {
+      "method": "POST",
+      "endpoint": "/wishlist",
+      "description": "Add a product to wishlist",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "productId": 1
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product added to wishlist successfully",
+        "data": {
+          "userId": 1,
+          "userName": "John Doe",
+          "items": [
+            {
+              "id": 1,
+              "productId": 1,
+              "productName": "Sample Book",
+              "productPrice": 100000,
+              "productDiscount": 10,
+              "finalPrice": 90000,
+              "stockQuantity": 50,
+              "inStock": true
+            }
+          ],
+          "totalItems": 1
+        }
+      }
+    },
+
+    "5_remove_by_product_id": {
+      "method": "DELETE",
+      "endpoint": "/wishlist/product/{productId}",
+      "description": "Remove a product from wishlist by product ID",
+      "example_endpoint": "/wishlist/product/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product removed from wishlist successfully",
+        "data": {
+          "userId": 1,
+          "items": [],
+          "totalItems": 0
+        }
+      }
+    },
+
+    "6_remove_by_item_id": {
+      "method": "DELETE",
+      "endpoint": "/wishlist/item/{itemId}",
+      "description": "Remove an item from wishlist by item ID",
+      "example_endpoint": "/wishlist/item/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Item removed from wishlist successfully",
+        "data": {
+          "userId": 1,
+          "items": [],
+          "totalItems": 0
+        }
+      }
+    },
+
+    "7_clear_wishlist": {
+      "method": "DELETE",
+      "endpoint": "/wishlist",
+      "description": "Remove all items from wishlist",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Wishlist cleared successfully"
+      }
+    },
+
+    "test_scenarios": {
+      "scenario_1_add_multiple_products": {
+        "description": "Add multiple products to wishlist",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Add first product",
+            "method": "POST",
+            "endpoint": "/wishlist",
+            "body": {
+              "productId": 1
+            }
+          },
+          {
+            "step": 2,
+            "action": "Add second product",
+            "method": "POST",
+            "endpoint": "/wishlist",
+            "body": {
+              "productId": 2
+            }
+          },
+          {
+            "step": 3,
+            "action": "Add third product",
+            "method": "POST",
+            "endpoint": "/wishlist",
+            "body": {
+              "productId": 3
+            }
+          },
+          {
+            "step": 4,
+            "action": "View wishlist",
+            "method": "GET",
+            "endpoint": "/wishlist"
+          },
+          {
+            "step": 5,
+            "action": "Check count",
+            "method": "GET",
+            "endpoint": "/wishlist/count",
+            "expected": {
+              "count": 3
+            }
+          }
+        ]
+      },
+
+      "scenario_2_wishlist_to_cart": {
+        "description": "Move items from wishlist to cart",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Get wishlist",
+            "method": "GET",
+            "endpoint": "/wishlist"
+          },
+          {
+            "step": 2,
+            "action": "Add wishlist item to cart",
+            "method": "POST",
+            "endpoint": "/cart/items",
+            "body": {
+              "productId": 1,
+              "quantity": 1
+            }
+          },
+          {
+            "step": 3,
+            "action": "Remove from wishlist after adding to cart",
+            "method": "DELETE",
+            "endpoint": "/wishlist/product/1"
+          }
+        ]
+      },
+
+      "scenario_3_check_before_add": {
+        "description": "Check if product in wishlist before adding",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Check if product is in wishlist",
+            "method": "GET",
+            "endpoint": "/wishlist/check/1"
+          },
+          {
+            "step": 2,
+            "action": "If not in wishlist, add it",
+            "method": "POST",
+            "endpoint": "/wishlist",
+            "body": {
+              "productId": 1
+            }
+          },
+          {
+            "step": 3,
+            "action": "Check again to verify",
+            "method": "GET",
+            "endpoint": "/wishlist/check/1",
+            "expected": {
+              "inWishList": true
+            }
+          }
+        ]
+      },
+
+      "scenario_4_manage_wishlist": [
+        {
+          "step": 1,
+          "action": "Get current wishlist",
+          "method": "GET",
+          "endpoint": "/wishlist"
+        },
+        {
+          "step": 2,
+          "action": "Add new product",
+          "method": "POST",
+          "endpoint": "/wishlist",
+          "body": {
+            "productId": 5
+          }
+        },
+        {
+          "step": 3,
+          "action": "Remove specific item",
+          "method": "DELETE",
+          "endpoint": "/wishlist/item/1"
+        },
+        {
+          "step": 4,
+          "action": "Clear entire wishlist",
+          "method": "DELETE",
+          "endpoint": "/wishlist"
+        }
+      ]
+    },
+
+    "error_cases": {
+      "product_not_found": {
+        "method": "POST",
+        "endpoint": "/wishlist",
+        "body": {
+          "productId": 99999
+        },
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Product not found"
+        }
+      },
+
+      "already_in_wishlist": {
+        "description": "Cannot add same product twice",
+        "method": "POST",
+        "endpoint": "/wishlist",
+        "body": {
+          "productId": 1
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Product is already in your wishlist"
+        }
+      },
+
+      "product_not_in_wishlist": {
+        "method": "DELETE",
+        "endpoint": "/wishlist/product/99",
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Product not found in wishlist"
+        }
+      },
+
+      "item_not_found": {
+        "method": "DELETE",
+        "endpoint": "/wishlist/item/99999",
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Wishlist item not found"
+        }
+      },
+
+      "unauthorized_access": {
+        "description": "Cannot access another user's wishlist item",
+        "method": "DELETE",
+        "endpoint": "/wishlist/item/1",
+        "expected_error": {
+          "statusCode": 403,
+          "message": "This item does not belong to your wishlist"
+        }
+      },
+
+      "missing_product_id": {
+        "method": "POST",
+        "endpoint": "/wishlist",
+        "body": {},
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Product ID is required"
+        }
+      }
+    },
+
+    "use_cases": {
+      "save_for_later": {
+        "description": "User browses products and saves interesting items for later purchase",
+        "workflow": [
+          "Browse products",
+          "Click 'Add to Wishlist' button",
+          "Continue shopping",
+          "Return to wishlist later",
+          "Move items from wishlist to cart when ready to buy"
+        ]
+      },
+
+      "gift_ideas": {
+        "description": "User creates wishlist as gift ideas for others",
+        "workflow": [
+          "Add products to wishlist",
+          "Share wishlist with friends/family",
+          "Others can see what you want",
+          "Purchase items from wishlist"
+        ]
+      },
+
+      "price_tracking": {
+        "description": "Monitor prices of desired products",
+        "workflow": [
+          "Add expensive items to wishlist",
+          "Check wishlist regularly for price changes",
+          "Buy when price drops or discount is available"
+        ]
+      },
+
+      "stock_monitoring": {
+        "description": "Track out-of-stock items",
+        "note": "Each wishlist item shows inStock status",
+        "workflow": [
+          "Add out-of-stock product to wishlist",
+          "Check wishlist to see when item is back in stock",
+          "Purchase when available"
+        ]
+      }
+    },
+
+    "integration_examples": {
+      "toggle_wishlist": {
+        "description": "Toggle product in/out of wishlist (like a heart icon)",
+        "pseudo_code": {
+          "check_status": "GET /wishlist/check/{productId}",
+          "if_in_wishlist": "DELETE /wishlist/product/{productId}",
+          "if_not_in_wishlist": "POST /wishlist with productId"
+        }
+      },
+
+      "display_count": {
+        "description": "Show wishlist count in navigation bar",
+        "endpoint": "GET /wishlist/count",
+        "display": "❤️ 5"
+      },
+
+      "product_card": {
+        "description": "Show wishlist status on product card",
+        "check": "GET /wishlist/check/{productId}",
+        "display": "Heart icon (filled if in wishlist, outline if not)"
+      }
+    }
+  }
+}
+

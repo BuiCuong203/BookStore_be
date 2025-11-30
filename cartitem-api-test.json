@@ -1,0 +1,297 @@
+{
+  "cart_api_tests": {
+    "description": "Test API endpoints for Cart and CartItem CRUD operations",
+    "base_url": "http://localhost:8080/api/v1",
+    "auth_required": "Bearer token required in Authorization header",
+
+    "1_get_cart": {
+      "method": "GET",
+      "endpoint": "/cart",
+      "description": "Get current user's shopping cart",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Cart retrieved successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "items": [],
+          "total": 0,
+          "totalItems": 0
+        }
+      }
+    },
+
+    "2_add_to_cart": {
+      "method": "POST",
+      "endpoint": "/cart/items",
+      "description": "Add a product to shopping cart",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "productId": 1,
+        "quantity": 2
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product added to cart successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "items": [
+            {
+              "id": 1,
+              "productId": 1,
+              "productName": "Sample Book",
+              "productPrice": 100000,
+              "productDiscount": 10,
+              "quantity": 2,
+              "total": 180000
+            }
+          ],
+          "total": 180000,
+          "totalItems": 2
+        }
+      }
+    },
+
+    "3_update_cart_item": {
+      "method": "PUT",
+      "endpoint": "/cart/items/{itemId}",
+      "description": "Update quantity of an item in cart",
+      "example_endpoint": "/cart/items/1",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "quantity": 5
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Cart item updated successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "items": [
+            {
+              "id": 1,
+              "productId": 1,
+              "productName": "Sample Book",
+              "productPrice": 100000,
+              "productDiscount": 10,
+              "quantity": 5,
+              "total": 450000
+            }
+          ],
+          "total": 450000,
+          "totalItems": 5
+        }
+      }
+    },
+
+    "4_remove_cart_item": {
+      "method": "DELETE",
+      "endpoint": "/cart/items/{itemId}",
+      "description": "Remove an item from shopping cart",
+      "example_endpoint": "/cart/items/1",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Item removed from cart successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "items": [],
+          "total": 0,
+          "totalItems": 0
+        }
+      }
+    },
+
+    "5_clear_cart": {
+      "method": "DELETE",
+      "endpoint": "/cart",
+      "description": "Remove all items from shopping cart",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Cart cleared successfully"
+      }
+    },
+
+    "test_scenarios": {
+      "scenario_1_add_multiple_products": [
+        {
+          "step": 1,
+          "action": "Add product 1",
+          "request": {
+            "method": "POST",
+            "endpoint": "/cart/items",
+            "body": {
+              "productId": 1,
+              "quantity": 2
+            }
+          }
+        },
+        {
+          "step": 2,
+          "action": "Add product 2",
+          "request": {
+            "method": "POST",
+            "endpoint": "/cart/items",
+            "body": {
+              "productId": 2,
+              "quantity": 1
+            }
+          }
+        },
+        {
+          "step": 3,
+          "action": "Get cart to verify",
+          "request": {
+            "method": "GET",
+            "endpoint": "/cart"
+          }
+        }
+      ],
+
+      "scenario_2_update_and_remove": [
+        {
+          "step": 1,
+          "action": "Add product to cart",
+          "request": {
+            "method": "POST",
+            "endpoint": "/cart/items",
+            "body": {
+              "productId": 1,
+              "quantity": 1
+            }
+          }
+        },
+        {
+          "step": 2,
+          "action": "Update item quantity",
+          "request": {
+            "method": "PUT",
+            "endpoint": "/cart/items/1",
+            "body": {
+              "quantity": 3
+            }
+          }
+        },
+        {
+          "step": 3,
+          "action": "Remove item",
+          "request": {
+            "method": "DELETE",
+            "endpoint": "/cart/items/1"
+          }
+        }
+      ],
+
+      "scenario_3_add_same_product_twice": {
+        "description": "Adding the same product twice should increase quantity",
+        "steps": [
+          {
+            "step": 1,
+            "request": {
+              "method": "POST",
+              "endpoint": "/cart/items",
+              "body": {
+                "productId": 1,
+                "quantity": 2
+              }
+            }
+          },
+          {
+            "step": 2,
+            "request": {
+              "method": "POST",
+              "endpoint": "/cart/items",
+              "body": {
+                "productId": 1,
+                "quantity": 3
+              }
+            }
+          }
+        ],
+        "expected_result": "Quantity should be 5 for product 1"
+      }
+    },
+
+    "error_cases": {
+      "invalid_product_id": {
+        "method": "POST",
+        "endpoint": "/cart/items",
+        "body": {
+          "productId": 99999,
+          "quantity": 1
+        },
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Product not found"
+        }
+      },
+
+      "invalid_quantity": {
+        "method": "POST",
+        "endpoint": "/cart/items",
+        "body": {
+          "productId": 1,
+          "quantity": 0
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Quantity must be at least 1"
+        }
+      },
+
+      "insufficient_stock": {
+        "method": "POST",
+        "endpoint": "/cart/items",
+        "body": {
+          "productId": 1,
+          "quantity": 1000000
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Not enough stock available"
+        }
+      },
+
+      "cart_item_not_found": {
+        "method": "PUT",
+        "endpoint": "/cart/items/99999",
+        "body": {
+          "quantity": 1
+        },
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Cart item not found"
+        }
+      },
+
+      "unauthorized_access": {
+        "method": "GET",
+        "endpoint": "/cart",
+        "headers": {
+          "Authorization": ""
+        },
+        "expected_error": {
+          "statusCode": 401,
+          "message": "Unauthorized"
+        }
+      }
+    }
+  }
+}
+

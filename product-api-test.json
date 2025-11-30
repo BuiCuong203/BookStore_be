@@ -1,0 +1,248 @@
+{
+  "product_api_tests": {
+    "description": "Test API endpoints for Product CRUD operations",
+    "base_url": "http://localhost:8080/api/v1",
+
+    "1_get_all_products": {
+      "method": "GET",
+      "endpoint": "/products",
+      "description": "Get all products with pagination and sorting",
+      "query_params": {
+        "page": 0,
+        "size": 10,
+        "sortBy": "id",
+        "sortDir": "DESC"
+      },
+      "example_url": "/products?page=0&size=10&sortBy=id&sortDir=DESC",
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Products retrieved successfully",
+        "data": {
+          "content": [],
+          "totalElements": 0,
+          "totalPages": 0,
+          "size": 10,
+          "number": 0
+        }
+      }
+    },
+
+    "2_get_product_by_id": {
+      "method": "GET",
+      "endpoint": "/products/{id}",
+      "description": "Get a single product by its ID",
+      "example_endpoint": "/products/1",
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product retrieved successfully",
+        "data": {
+          "id": 1,
+          "categoryId": 1,
+          "categoryName": "Fiction",
+          "name": "Sample Book",
+          "shortDescription": "A great book",
+          "description": "Detailed description of the book",
+          "dimension": "20x15x2 cm",
+          "numberOfPages": 300,
+          "isbn": "978-1234567890",
+          "stockQuantity": 50,
+          "price": 100000,
+          "discount": 10,
+          "finalPrice": 90000,
+          "publisher": "ABC Publisher",
+          "publisherDate": "2024-01-01",
+          "ratingAvg": 4.5,
+          "ratingCount": 100,
+          "createdAt": "2024-11-27T10:00:00",
+          "updatedAt": "2024-11-27T10:00:00"
+        }
+      }
+    },
+
+    "3_create_product": {
+      "method": "POST",
+      "endpoint": "/products",
+      "description": "Create a new product (Admin only)",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "categoryId": 1,
+        "name": "New Amazing Book",
+        "shortDescription": "A captivating story",
+        "description": "This is a detailed description of an amazing book that will capture your imagination",
+        "dimension": "21x14x3 cm",
+        "numberOfPages": 450,
+        "isbn": "978-9876543210",
+        "stockQuantity": 100,
+        "price": 250000,
+        "discount": 15,
+        "publisher": "XYZ Publishing House",
+        "publisherDate": "2024-11-01"
+      },
+      "expected_response": {
+        "statusCode": 201,
+        "message": "Product created successfully",
+        "data": {
+          "id": 2,
+          "categoryId": 1,
+          "name": "New Amazing Book",
+          "price": 250000,
+          "discount": 15,
+          "finalPrice": 212500
+        }
+      }
+    },
+
+    "4_update_product": {
+      "method": "PUT",
+      "endpoint": "/products/{id}",
+      "description": "Update an existing product (Admin only)",
+      "example_endpoint": "/products/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Updated Book Name",
+        "price": 120000,
+        "discount": 20,
+        "stockQuantity": 75
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product updated successfully",
+        "data": {
+          "id": 1,
+          "name": "Updated Book Name",
+          "price": 120000,
+          "discount": 20,
+          "finalPrice": 96000,
+          "stockQuantity": 75
+        }
+      }
+    },
+
+    "5_delete_product": {
+      "method": "DELETE",
+      "endpoint": "/products/{id}",
+      "description": "Delete a product (Admin only)",
+      "example_endpoint": "/products/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Product deleted successfully"
+      }
+    },
+
+    "test_scenarios": {
+      "full_product_lifecycle": [
+        {
+          "step": 1,
+          "action": "Create product",
+          "method": "POST",
+          "endpoint": "/products",
+          "body": {
+            "categoryId": 1,
+            "name": "Test Book",
+            "shortDescription": "Test description",
+            "description": "Full test description",
+            "dimension": "20x15x2 cm",
+            "numberOfPages": 200,
+            "isbn": "978-1111111111",
+            "stockQuantity": 50,
+            "price": 150000,
+            "discount": 10,
+            "publisher": "Test Publisher",
+            "publisherDate": "2024-01-01"
+          }
+        },
+        {
+          "step": 2,
+          "action": "Get created product",
+          "method": "GET",
+          "endpoint": "/products/{id}"
+        },
+        {
+          "step": 3,
+          "action": "Update product",
+          "method": "PUT",
+          "endpoint": "/products/{id}",
+          "body": {
+            "price": 180000,
+            "discount": 15
+          }
+        },
+        {
+          "step": 4,
+          "action": "Delete product",
+          "method": "DELETE",
+          "endpoint": "/products/{id}"
+        }
+      ],
+
+      "search_and_filter": {
+        "sort_by_price_asc": "/products?page=0&size=10&sortBy=price&sortDir=ASC",
+        "sort_by_price_desc": "/products?page=0&size=10&sortBy=price&sortDir=DESC",
+        "sort_by_name": "/products?page=0&size=10&sortBy=name&sortDir=ASC",
+        "sort_by_created_date": "/products?page=0&size=10&sortBy=createdAt&sortDir=DESC"
+      }
+    },
+
+    "error_cases": {
+      "product_not_found": {
+        "method": "GET",
+        "endpoint": "/products/99999",
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Product not found"
+        }
+      },
+
+      "invalid_category": {
+        "method": "POST",
+        "endpoint": "/products",
+        "body": {
+          "categoryId": 99999,
+          "name": "Test",
+          "isbn": "123",
+          "stockQuantity": 10,
+          "price": 10000
+        },
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Category not found"
+        }
+      },
+
+      "missing_required_fields": {
+        "method": "POST",
+        "endpoint": "/products",
+        "body": {
+          "name": "Test Book"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Validation failed"
+        }
+      },
+
+      "unauthorized_create": {
+        "method": "POST",
+        "endpoint": "/products",
+        "headers": {},
+        "expected_error": {
+          "statusCode": 401,
+          "message": "Unauthorized"
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,171 @@
+package com.vn.backend.controller;
+
+import com.vn.backend.dto.request.CreateCategoryRequest;
+import com.vn.backend.dto.request.UpdateCategoryRequest;
+import com.vn.backend.dto.response.ApiResponse;
+import com.vn.backend.dto.response.CategoryResponse;
+import com.vn.backend.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/categories")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
+@Tag(name = "Category", description = "Category Management APIs")
+public class CategoryController {
+
+    CategoryService categoryService;
+
+    /**
+     * Get all categories
+     */
+    @GetMapping
+    @Operation(summary = "Get all categories", description = "Get all categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
+        log.info("Getting all categories");
+
+        List<CategoryResponse> categories = categoryService.getAllCategories();
+
+        ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Categories retrieved successfully")
+                .data(categories)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get root categories
+     */
+    @GetMapping("/root")
+    @Operation(summary = "Get root categories", description = "Get categories without parent")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getRootCategories() {
+        log.info("Getting root categories");
+
+        List<CategoryResponse> categories = categoryService.getRootCategories();
+
+        ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Root categories retrieved successfully")
+                .data(categories)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get child categories by parent ID
+     */
+    @GetMapping("/children/{parentId}")
+    @Operation(summary = "Get child categories", description = "Get categories by parent ID")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getChildCategories(
+            @PathVariable Long parentId) {
+        log.info("Getting child categories for parent id: {}", parentId);
+
+        List<CategoryResponse> categories = categoryService.getChildCategories(parentId);
+
+        ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Child categories retrieved successfully")
+                .data(categories)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get category by ID
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "Get category by ID", description = "Get a single category by its ID")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
+        log.info("Getting category with id: {}", id);
+
+        CategoryResponse category = categoryService.getCategoryById(id);
+
+        ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Category retrieved successfully")
+                .data(category)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Create new category
+     */
+    @PostMapping
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Create category", description = "Create a new category (Admin only)")
+    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
+            @Valid @RequestBody CreateCategoryRequest request) {
+        log.info("Creating new category: {}", request.getName());
+
+        CategoryResponse category = categoryService.createCategory(request);
+
+        ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
+                .statusCode(HttpStatus.CREATED.value())
+                .message("Category created successfully")
+                .data(category)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Update category
+     */
+    @PutMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Update category", description = "Update an existing category (Admin only)")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCategoryRequest request) {
+        log.info("Updating category with id: {}", id);
+
+        CategoryResponse category = categoryService.updateCategory(id, request);
+
+        ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Category updated successfully")
+                .data(category)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Delete category
+     */
+    @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Delete category", description = "Delete a category (Admin only)")
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
+        log.info("Deleting category with id: {}", id);
+
+        categoryService.deleteCategory(id);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Category deleted successfully")
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+}
+

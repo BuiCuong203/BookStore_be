@@ -1,0 +1,423 @@
+{
+  "order_api_tests": {
+    "description": "Test API endpoints for Order CRUD operations",
+    "base_url": "http://localhost:8080/api/v1",
+    "note": "All order endpoints require authentication",
+
+    "order_statuses": {
+      "PENDING": "Order has been placed and awaiting confirmation",
+      "CONFIRMED": "Order has been confirmed",
+      "PROCESSING": "Order is being prepared",
+      "SHIPPING": "Order is out for delivery",
+      "DELIVERED": "Order has been delivered",
+      "CANCELLED": "Order has been cancelled"
+    },
+
+    "1_create_order": {
+      "method": "POST",
+      "endpoint": "/orders",
+      "description": "Create a new order from current cart",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "address": "123 Main Street, District 1, Ho Chi Minh City",
+        "methodPayment": "COD",
+        "note": "Please call before delivery"
+      },
+      "expected_response": {
+        "statusCode": 201,
+        "message": "Order created successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "customerName": "John Doe",
+          "customerEmail": "user@example.com",
+          "address": "123 Main Street, District 1, Ho Chi Minh City",
+          "status": "PENDING",
+          "methodPayment": "COD",
+          "totalAmount": 450000,
+          "totalItem": 3,
+          "items": [
+            {
+              "id": 1,
+              "productId": 1,
+              "productName": "Sample Book",
+              "productPrice": 100000,
+              "productDiscount": 10,
+              "quantity": 2,
+              "total": 180000
+            }
+          ],
+          "createdAt": "2024-11-27T10:00:00",
+          "updatedAt": "2024-11-27T10:00:00"
+        }
+      }
+    },
+
+    "2_get_my_orders": {
+      "method": "GET",
+      "endpoint": "/orders/my-orders",
+      "description": "Get current user's orders with pagination",
+      "auth_required": true,
+      "query_params": {
+        "page": 0,
+        "size": 10,
+        "sortBy": "createdAt",
+        "sortDir": "DESC"
+      },
+      "example_url": "/orders/my-orders?page=0&size=10&sortBy=createdAt&sortDir=DESC",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Your orders retrieved successfully",
+        "data": {
+          "content": [],
+          "totalElements": 0,
+          "totalPages": 0,
+          "size": 10,
+          "number": 0
+        }
+      }
+    },
+
+    "3_get_order_by_id": {
+      "method": "GET",
+      "endpoint": "/orders/{id}",
+      "description": "Get a single order by its ID",
+      "example_endpoint": "/orders/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Order retrieved successfully",
+        "data": {
+          "id": 1,
+          "customerId": 1,
+          "customerName": "John Doe",
+          "customerEmail": "user@example.com",
+          "address": "123 Main Street",
+          "status": "PENDING",
+          "methodPayment": "COD",
+          "totalAmount": 450000,
+          "totalItem": 3,
+          "items": [],
+          "createdAt": "2024-11-27T10:00:00",
+          "updatedAt": "2024-11-27T10:00:00"
+        }
+      }
+    },
+
+    "4_cancel_order": {
+      "method": "PUT",
+      "endpoint": "/orders/{id}/cancel",
+      "description": "Cancel a pending order (User)",
+      "example_endpoint": "/orders/1/cancel",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Order cancelled successfully",
+        "data": {
+          "id": 1,
+          "status": "CANCELLED"
+        }
+      }
+    },
+
+    "5_admin_get_all_orders": {
+      "method": "GET",
+      "endpoint": "/orders/admin/all",
+      "description": "Get all orders with pagination (Admin only)",
+      "auth_required": true,
+      "query_params": {
+        "page": 0,
+        "size": 10,
+        "sortBy": "createdAt",
+        "sortDir": "DESC"
+      },
+      "example_url": "/orders/admin/all?page=0&size=10",
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Orders retrieved successfully",
+        "data": {
+          "content": [],
+          "totalElements": 0,
+          "totalPages": 0
+        }
+      }
+    },
+
+    "6_admin_get_orders_by_status": {
+      "method": "GET",
+      "endpoint": "/orders/admin/status/{status}",
+      "description": "Get orders filtered by status (Admin only)",
+      "example_endpoint": "/orders/admin/status/PENDING",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Orders retrieved successfully",
+        "data": {
+          "content": []
+        }
+      }
+    },
+
+    "7_admin_update_order_status": {
+      "method": "PUT",
+      "endpoint": "/orders/admin/{id}/status",
+      "description": "Update order status (Admin only)",
+      "example_endpoint": "/orders/admin/1/status",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "status": "CONFIRMED"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Order status updated successfully",
+        "data": {
+          "id": 1,
+          "status": "CONFIRMED"
+        }
+      }
+    },
+
+    "8_admin_delete_order": {
+      "method": "DELETE",
+      "endpoint": "/orders/admin/{id}",
+      "description": "Delete an order (Admin only)",
+      "example_endpoint": "/orders/admin/1",
+      "auth_required": true,
+      "headers": {
+        "Authorization": "Bearer YOUR_ADMIN_TOKEN"
+      },
+      "expected_response": {
+        "statusCode": 200,
+        "message": "Order deleted successfully"
+      }
+    },
+
+    "test_scenarios": {
+      "scenario_1_complete_order_flow": {
+        "description": "Complete order flow from cart to delivery",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Add products to cart",
+            "method": "POST",
+            "endpoint": "/cart/items",
+            "body": {
+              "productId": 1,
+              "quantity": 2
+            }
+          },
+          {
+            "step": 2,
+            "action": "Review cart",
+            "method": "GET",
+            "endpoint": "/cart"
+          },
+          {
+            "step": 3,
+            "action": "Create order from cart",
+            "method": "POST",
+            "endpoint": "/orders",
+            "body": {
+              "address": "123 Main St",
+              "methodPayment": "COD"
+            }
+          },
+          {
+            "step": 4,
+            "action": "Check order details",
+            "method": "GET",
+            "endpoint": "/orders/{orderId}"
+          },
+          {
+            "step": 5,
+            "action": "Admin confirms order",
+            "method": "PUT",
+            "endpoint": "/orders/admin/{orderId}/status",
+            "body": {
+              "status": "CONFIRMED"
+            }
+          },
+          {
+            "step": 6,
+            "action": "Admin updates to shipping",
+            "method": "PUT",
+            "endpoint": "/orders/admin/{orderId}/status",
+            "body": {
+              "status": "SHIPPING"
+            }
+          },
+          {
+            "step": 7,
+            "action": "Admin marks as delivered",
+            "method": "PUT",
+            "endpoint": "/orders/admin/{orderId}/status",
+            "body": {
+              "status": "DELIVERED"
+            }
+          }
+        ]
+      },
+
+      "scenario_2_cancel_order": {
+        "description": "User cancels a pending order",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Create order",
+            "method": "POST",
+            "endpoint": "/orders",
+            "body": {
+              "address": "123 Main St",
+              "methodPayment": "COD"
+            }
+          },
+          {
+            "step": 2,
+            "action": "Cancel order",
+            "method": "PUT",
+            "endpoint": "/orders/{orderId}/cancel"
+          },
+          {
+            "step": 3,
+            "action": "Verify stock restored",
+            "method": "GET",
+            "endpoint": "/products/{productId}"
+          }
+        ]
+      },
+
+      "scenario_3_admin_order_management": [
+        {
+          "step": 1,
+          "action": "Get all pending orders",
+          "method": "GET",
+          "endpoint": "/orders/admin/status/PENDING"
+        },
+        {
+          "step": 2,
+          "action": "Update order status",
+          "method": "PUT",
+          "endpoint": "/orders/admin/{orderId}/status",
+          "body": {
+            "status": "PROCESSING"
+          }
+        },
+        {
+          "step": 3,
+          "action": "Get all orders",
+          "method": "GET",
+          "endpoint": "/orders/admin/all"
+        }
+      ]
+    },
+
+    "error_cases": {
+      "empty_cart": {
+        "description": "Cannot create order with empty cart",
+        "method": "POST",
+        "endpoint": "/orders",
+        "body": {
+          "address": "123 Main St",
+          "methodPayment": "COD"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Cart is empty"
+        }
+      },
+
+      "insufficient_stock": {
+        "description": "Cannot create order if product stock is insufficient",
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Product 'X' has insufficient stock"
+        }
+      },
+
+      "cancel_non_pending_order": {
+        "description": "User cannot cancel order that is not pending",
+        "method": "PUT",
+        "endpoint": "/orders/1/cancel",
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Only pending orders can be cancelled"
+        }
+      },
+
+      "update_cancelled_order": {
+        "description": "Cannot update status of cancelled order",
+        "method": "PUT",
+        "endpoint": "/orders/admin/1/status",
+        "body": {
+          "status": "CONFIRMED"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Cannot update status of cancelled order"
+        }
+      },
+
+      "order_not_found": {
+        "method": "GET",
+        "endpoint": "/orders/99999",
+        "expected_error": {
+          "statusCode": 404,
+          "message": "Order not found"
+        }
+      },
+
+      "missing_address": {
+        "method": "POST",
+        "endpoint": "/orders",
+        "body": {
+          "methodPayment": "COD"
+        },
+        "expected_error": {
+          "statusCode": 400,
+          "message": "Address is required"
+        }
+      },
+
+      "unauthorized_access": {
+        "method": "GET",
+        "endpoint": "/orders/my-orders",
+        "headers": {},
+        "expected_error": {
+          "statusCode": 401,
+          "message": "Unauthorized"
+        }
+      }
+    },
+
+    "payment_methods": {
+      "COD": "Cash on Delivery",
+      "BANK_TRANSFER": "Bank Transfer",
+      "CREDIT_CARD": "Credit Card",
+      "E_WALLET": "E-Wallet (Momo, ZaloPay, etc.)"
+    }
+  }
+}
+
