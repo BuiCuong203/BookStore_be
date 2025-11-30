@@ -7,6 +7,7 @@ import com.vn.backend.dto.response.OrderResponse;
 import com.vn.backend.exception.AppException;
 import com.vn.backend.model.*;
 import com.vn.backend.repository.*;
+import com.vn.backend.util.enums.OrderStatus;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -165,7 +166,7 @@ public class OrderService {
             Product product = cartItem.getProduct();
             if (product.getStockQuanity() < cartItem.getQuantity()) {
                 throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                    "Product '" + product.getName() + "' has insufficient stock");
+                        "Product '" + product.getName() + "' has insufficient stock");
             }
         }
 
@@ -179,7 +180,7 @@ public class OrderService {
         Order order = Order.builder()
                 .user(currentUser)
                 .address(request.getAddress())
-                .status("PENDING")
+                .status(OrderStatus.PENDING.name())
                 .methodPayment(request.getMethodPayment())
                 .totalAmount(totalAmount)
                 .totalItem(totalItem)
@@ -234,18 +235,18 @@ public class OrderService {
         String newStatus = request.getStatus().toUpperCase();
 
         // Business logic for status transitions
-        if ("CANCELLED".equals(currentStatus)) {
+        if (OrderStatus.CANCELLED.name().equals(currentStatus)) {
             throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                "Cannot update status of cancelled order");
+                    "Cannot update status of cancelled order");
         }
 
-        if ("DELIVERED".equals(currentStatus)) {
+        if (OrderStatus.DELIVERED.name().equals(currentStatus)) {
             throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                "Cannot update status of delivered order");
+                    "Cannot update status of delivered order");
         }
 
         // If cancelling, restore product stock
-        if ("CANCELLED".equals(newStatus) && !"CANCELLED".equals(currentStatus)) {
+        if (OrderStatus.CANCELLED.name().equals(newStatus) && !OrderStatus.CANCELLED.name().equals(currentStatus)) {
             List<OrderItem> items = orderItemRepository.findByOrder(order);
             for (OrderItem item : items) {
                 Product product = item.getProduct();
@@ -272,11 +273,11 @@ public class OrderService {
 
         Order order = orderRepository.findByIdAndUser(id, currentUser)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND.value(),
-                    "Order not found or you don't have permission"));
+                        "Order not found or you don't have permission"));
 
-        if (!"PENDING".equals(order.getStatus())) {
+        if (!OrderStatus.PENDING.name().equals(order.getStatus())) {
             throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                "Only pending orders can be cancelled");
+                    "Only pending orders can be cancelled");
         }
 
         // Restore product stock
@@ -287,7 +288,7 @@ public class OrderService {
             productRepository.save(product);
         }
 
-        order.setStatus("CANCELLED");
+        order.setStatus(OrderStatus.CANCELLED.name());
         order = orderRepository.save(order);
 
         log.info("Order cancelled and stock restored");
