@@ -27,6 +27,17 @@ spring:
       max-request-size: 10MB
   profiles:
     active: dev
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: profile, email
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            client-name: Google
+            authorization-grant-type: authorization_code
 
 jobs:
   cleanup:

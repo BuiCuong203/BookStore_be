@@ -42,6 +42,9 @@ public class User {
     @Column(name = "address", length = 255)
     String address;
 
+    @Column(name = "google_id", unique = true, length = 255)
+    private String googleId;
+
     @Column(name = "is_active", nullable = false)
     boolean isActive;
 

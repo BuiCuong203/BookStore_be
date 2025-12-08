@@ -186,6 +186,7 @@ CREATE TABLE users
     avatar_url     VARCHAR(255) NULL,
     phone          VARCHAR(20) NULL,
     address        VARCHAR(255) NULL,
+    google_id      VARCHAR(255) NULL,
     is_active      BIT(1)       NOT NULL,
     is_locked      BIT(1)       NOT NULL,
     mfa_enabled    BIT(1)       NOT NULL,
