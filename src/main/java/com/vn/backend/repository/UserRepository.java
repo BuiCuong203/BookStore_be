@@ -1,6 +1,7 @@
 package com.vn.backend.repository;
 
 import com.vn.backend.model.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +19,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     Optional<User> findByEmailWithRolesAndPermissions(@Param("email") String email);
 
+    @EntityGraph(attributePaths = "roles")
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    @EntityGraph(attributePaths = "roles")
+    Optional<User> findByGoogleId(String googleId);
 }

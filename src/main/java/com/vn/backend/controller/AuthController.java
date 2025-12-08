@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,5 +41,10 @@ public class AuthController {
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(@RequestBody RefreshTokenRequest request) {
         ApiResponse<RefreshTokenResponse> res = authService.refresh(request);
         return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @GetMapping("/google")
+    public RedirectView startGoogleLogin() {
+        return new RedirectView("/oauth2/authorization/google");
     }
 }
