@@ -41,7 +41,7 @@ public class WishListController {
 
         ApiResponse<WishListResponse> response = ApiResponse.<WishListResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Wishlist retrieved successfully")
+                .message("Danh sách yêu thích đã được truy xuất thành công.")
                 .data(wishList)
                 .build();
 
@@ -60,7 +60,7 @@ public class WishListController {
 
         ApiResponse<Map<String, Long>> response = ApiResponse.<Map<String, Long>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Wishlist count retrieved successfully")
+                .message("Số lượng sản phẩm trong danh sách yêu thích đã được truy xuất thành công.")
                 .data(Map.of("count", count))
                 .build();
 
@@ -80,7 +80,7 @@ public class WishListController {
 
         ApiResponse<Map<String, Boolean>> response = ApiResponse.<Map<String, Boolean>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Check completed successfully")
+                .message("Kiểm tra hoàn tất thành công")
                 .data(Map.of("inWishList", inWishList))
                 .build();
 
@@ -100,7 +100,7 @@ public class WishListController {
 
         ApiResponse<WishListResponse> response = ApiResponse.<WishListResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product added to wishlist successfully")
+                .message("Sản phẩm đã được thêm vào danh sách yêu thích thành công.")
                 .data(wishList)
                 .build();
 
@@ -120,7 +120,7 @@ public class WishListController {
 
         ApiResponse<WishListResponse> response = ApiResponse.<WishListResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product removed from wishlist successfully")
+                .message("Sản phẩm đã được xóa khỏi danh sách yêu thích thành công.")
                 .data(wishList)
                 .build();
 
@@ -140,7 +140,7 @@ public class WishListController {
 
         ApiResponse<WishListResponse> response = ApiResponse.<WishListResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Item removed from wishlist successfully")
+                .message("Sản phẩm đã được xóa khỏi danh sách yêu thích thành công.")
                 .data(wishList)
                 .build();
 
@@ -159,7 +159,7 @@ public class WishListController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Wishlist cleared successfully")
+                .message("Đã xóa danh sách yêu thích thành công")
                 .build();
 
         return ResponseEntity.ok(response);

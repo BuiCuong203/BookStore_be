@@ -14,22 +14,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class CreateCouponRequest {
-    @NotBlank(message = "Coupon code is required")
-    @Pattern(regexp = "^[A-Z0-9_-]+$", message = "Coupon code must contain only uppercase letters, numbers, underscore and hyphen")
+    @NotBlank(message = "Cần có mã giảm giá.")
+    @Pattern(regexp = "^[A-Z0-9_-]+$", message = "Mã giảm giá chỉ được chứa chữ cái viết hoa, số, dấu gạch dưới và dấu gạch ngang.")
     private String code;
 
     private String description;
 
-    @NotNull(message = "Stock quantity is required")
-    @Min(value = 1, message = "Stock quantity must be at least 1")
+    @NotNull(message = "Cần có số lượng hàng tồn kho")
+    @Min(value = 1, message = "Số lượng hàng tồn kho tối thiểu phải là 1.")
     private Integer stockQuantity;
 
-    @NotBlank(message = "Discount type is required")
-    @Pattern(regexp = "^(PERCENTAGE|FIXED)$", message = "Discount type must be PERCENTAGE or FIXED")
+    @NotBlank(message = "Loại giảm giá là bắt buộc")
+    @Pattern(regexp = "^(PERCENTAGE|FIXED)$", message = "Loại chiết khấu phải là PHẦN TRĂM hoặc CỐ ĐỊNH.")
     private String discountType;
 
-    @NotNull(message = "Discount value is required")
-    @Min(value = 1, message = "Discount value must be at least 1")
+    @NotNull(message = "Giá trị chiết khấu là bắt buộc")
+    @Min(value = 1, message = "Giá trị giảm giá phải tối thiểu là 1")
     private Integer discount;
 }
 

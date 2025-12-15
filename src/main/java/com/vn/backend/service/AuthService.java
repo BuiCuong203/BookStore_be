@@ -1,23 +1,17 @@
 package com.vn.backend.service;
 
 import com.vn.backend.config.jwt.JwtProvider;
-import com.vn.backend.dto.request.LoginRequest;
-import com.vn.backend.dto.request.RefreshTokenRequest;
-import com.vn.backend.dto.request.RegisterRequest;
+import com.vn.backend.dto.request.*;
 import com.vn.backend.dto.response.ApiResponse;
 import com.vn.backend.dto.response.LoginResponse;
 import com.vn.backend.dto.response.RefreshTokenResponse;
 import com.vn.backend.exception.AppException;
-import com.vn.backend.model.InvalidTokens;
-import com.vn.backend.model.RefreshToken;
-import com.vn.backend.model.Role;
-import com.vn.backend.model.User;
-import com.vn.backend.repository.InvalidTokenRepository;
-import com.vn.backend.repository.RefreshTokenRepository;
-import com.vn.backend.repository.RoleRepository;
-import com.vn.backend.repository.UserRepository;
+import com.vn.backend.model.*;
+import com.vn.backend.repository.*;
 import io.jsonwebtoken.Claims;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +50,15 @@ public class AuthService {
 
     @Autowired
     private InvalidTokenRepository invalidTokenRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Value("${resetUrl}")
+    private String resetUrl;
 
     public ApiResponse<LoginResponse> login(LoginRequest request) {
         UsernamePasswordAuthenticationToken authRequest =
@@ -100,7 +104,7 @@ public class AuthService {
 
             return ApiResponse.<LoginResponse>builder()
                     .statusCode(HttpStatus.OK.value())
-                    .message("Login successful")
+                    .message("Đăng nhập thành công")
                     .data(loginResponse)
                     .build();
         } catch (UsernameNotFoundException ex) {
@@ -140,7 +144,7 @@ public class AuthService {
 
             return ApiResponse.<String>builder()
                     .statusCode(HttpStatus.CREATED.value())
-                    .message("User registered successfully")
+                    .message("Người dùng đã đăng ký thành công")
                     .data(null)
                     .build();
 
@@ -164,7 +168,7 @@ public class AuthService {
 
         return ApiResponse.<String>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Logout successful")
+                .message("Đăng xuất thành công")
                 .data(null)
                 .build();
     }
@@ -227,10 +231,71 @@ public class AuthService {
 
         return ApiResponse.<RefreshTokenResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Refresh successful")
+                .message("Làm mới thành công")
                 .data(data)
                 .build();
 
+    }
+
+    public ApiResponse<String> fotgotPassword(ForgotPasswordRequest req) {
+        userRepository.findByEmail(req.getEmail()).ifPresent(user -> {
+
+            // xóa token cũ nếu có
+            passwordResetTokenRepository.deleteByEmail(user.getEmail());
+
+            String rawToken = UUID.randomUUID().toString();
+
+            String hashedToken = DigestUtils
+                    .sha256Hex(rawToken);
+
+            PasswordResetToken token = PasswordResetToken.builder()
+                    .email(user.getEmail())
+                    .token(hashedToken)
+                    .expiresAt(LocalDateTime.now().plusMinutes(10))
+                    .build();
+
+            passwordResetTokenRepository.save(token);
+
+            String url = resetUrl + rawToken;
+
+            emailService.sendResetPassword(
+                    user.getEmail(),
+                    url
+            );
+        });
+
+        return ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("quên mật khẩu thành công")
+                .data(null)
+                .build();
+    }
+
+    public ApiResponse<String> resetPassword(ResetPasswordRequest req) {
+        String hashedToken =
+                DigestUtils.sha256Hex(req.getToken());
+
+        PasswordResetToken token = passwordResetTokenRepository
+                .findByToken(hashedToken)
+                .filter(t -> t.getExpiresAt().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new RuntimeException("Token invalid or expired"));
+
+        User user = userRepository
+                .findByEmail(token.getEmail())
+                .orElseThrow();
+
+        user.setPassword(
+                passwordEncoder.encode(req.getNewPassword())
+        );
+
+        userRepository.save(user);
+        passwordResetTokenRepository.delete(token);
+
+        return ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Đặt lại mật khẩu thành công")
+                .data(null)
+                .build();
     }
 
     private long getRefreshExpSeconds() {

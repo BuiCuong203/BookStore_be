@@ -84,6 +84,16 @@ CREATE TABLE orders
     CONSTRAINT pk_orders PRIMARY KEY (id)
 );
 
+CREATE TABLE password_reset_tokens
+(
+    id         VARCHAR(255) NOT NULL,
+    email      VARCHAR(255) NOT NULL,
+    token      VARCHAR(255) NOT NULL,
+    expires_at datetime     NOT NULL,
+    created_at datetime NULL,
+    CONSTRAINT pk_password_reset_tokens PRIMARY KEY (id)
+);
+
 CREATE TABLE permissions
 (
     id            BIGINT       NOT NULL,
@@ -213,11 +223,17 @@ ALTER TABLE carts
 ALTER TABLE coupons
     ADD CONSTRAINT uc_coupons_code UNIQUE (code);
 
+ALTER TABLE password_reset_tokens
+    ADD CONSTRAINT uc_password_reset_tokens_token UNIQUE (token);
+
 ALTER TABLE refresh_tokens
     ADD CONSTRAINT uc_refresh_tokens_token UNIQUE (token);
 
 ALTER TABLE users
     ADD CONSTRAINT uc_users_email UNIQUE (email);
+
+ALTER TABLE users
+    ADD CONSTRAINT uc_users_google UNIQUE (google_id);
 
 ALTER TABLE authors
     ADD CONSTRAINT FK_AUTHORS_ON_PRODUCT FOREIGN KEY (product_id) REFERENCES products (id);
@@ -271,10 +287,10 @@ ALTER TABLE role_permissions
     ADD CONSTRAINT fk_role_permissions_role FOREIGN KEY (role_id) REFERENCES roles (id);
 
 ALTER TABLE role_permissions
-    ADD CONSTRAINT fk_role_permissions_role4FNXrG FOREIGN KEY (permission_id) REFERENCES permissions (id);
+    ADD CONSTRAINT fk_role_permissions_rolePwOXJt FOREIGN KEY (permission_id) REFERENCES permissions (id);
 
 ALTER TABLE user_roles
     ADD CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE user_roles
-    ADD CONSTRAINT fk_user_roles_userCyMcBI FOREIGN KEY (role_id) REFERENCES roles (id);
+    ADD CONSTRAINT fk_user_roles_userntIt6c FOREIGN KEY (role_id) REFERENCES roles (id);

@@ -60,7 +60,7 @@ public class CartController {
 
         ApiResponse<CartResponse> response = ApiResponse.<CartResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product added to cart successfully")
+                .message("Sách được thêm va giỏ hàng thành công")
                 .data(cart)
                 .build();
 
@@ -81,7 +81,7 @@ public class CartController {
 
         ApiResponse<CartResponse> response = ApiResponse.<CartResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Cart item updated successfully")
+                .message("Cập nhật giỏ hàng thành công")
                 .data(cart)
                 .build();
 
@@ -100,7 +100,7 @@ public class CartController {
 
         ApiResponse<CartResponse> response = ApiResponse.<CartResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Item removed from cart successfully")
+                .message("Xóa item thành công")
                 .data(cart)
                 .build();
 
@@ -119,7 +119,7 @@ public class CartController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Cart cleared successfully")
+                .message("Xóa giỏ hàng thành công")
                 .build();
 
         return ResponseEntity.ok(response);

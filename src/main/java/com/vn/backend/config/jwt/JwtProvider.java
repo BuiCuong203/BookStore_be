@@ -85,15 +85,15 @@ public class JwtProvider {
             return Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
         } catch (ExpiredJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token has expired", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Mã thông báo đã hết hạn", e);
         } catch (SignatureException | SecurityException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Invalid token signature", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Chữ ký mã thông báo không hợp lệ", e);
         } catch (MalformedJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token format is wrong", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Định dạng mã thông báo sai", e);
         } catch (UnsupportedJwtException e) {
-            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Token not supported", e);
+            throw new AppException(HttpStatus.UNAUTHORIZED.value(), "Mã thông báo không được hỗ trợ", e);
         } catch (IllegalArgumentException e) {
-            throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid token", e);
+            throw new AppException(HttpStatus.BAD_REQUEST.value(), "Mã thông báo không hợp lệ", e);
         }
     }
 }

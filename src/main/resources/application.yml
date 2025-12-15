@@ -38,6 +38,14 @@ spring:
             redirect-uri: ${GOOGLE_REDIRECT_URI}
             client-name: Google
             authorization-grant-type: authorization_code
+  mail:
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 jobs:
   cleanup:
@@ -64,3 +72,5 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+resetUrl: ${RESET_URL}

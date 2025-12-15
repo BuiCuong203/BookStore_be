@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateCategoryRequest {
 
-    @NotBlank(message = "Category name is required")
+    @NotBlank(message = "Tên danh mục là bắt buộc")
     private String name;
 
     private Long parentId;
