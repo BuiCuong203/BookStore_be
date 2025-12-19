@@ -2,7 +2,6 @@ package com.vn.backend.model;
 
 import java.time.LocalDateTime;
 
-import com.vn.backend.util.enums.OrderStatus;
 import com.vn.backend.util.enums.PaymentMethod;
 import com.vn.backend.util.enums.PaymentStatus;
 
@@ -15,7 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -32,43 +31,42 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "orders")
-public class Order {
+@Table(name = "payments")
+public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    Order order;
 
-    @Column(name = "address", nullable = false)
-    String address;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    PaymentStatus paymentStatus;
+
+    @Column(name = "amount", nullable = false)
+    Long amount;
+
+    @Column(name = "transaction_id")
+    String transactionId; // Mã giao dịch từ cổng thanh toán
+
+    @Column(name = "transaction_time")
+    LocalDateTime transactionTime; // Thời điểm thanh toán thành công
+
+    @Column(name = "payment_info")
+    String paymentInfo; // Thông tin bổ sung về thanh toán
 
     @Column(name = "created_at", nullable = false, updatable = false)
     LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     LocalDateTime updatedAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    OrderStatus status;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "method_payment")
-    PaymentMethod methodPayment;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
-    PaymentStatus paymentStatus;
-
-    @Column(name = "total_amount")
-    Long totalAmount;
-
-    @Column(name = "total_item")
-    int totalItem;
 
     @PrePersist
     public void prePersist() {
