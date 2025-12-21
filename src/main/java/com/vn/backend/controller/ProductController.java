@@ -54,7 +54,7 @@ public class ProductController {
 
         ApiResponse<Page<ProductResponse>> response = ApiResponse.<Page<ProductResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Products retrieved successfully")
+                .message("Sản phẩm được lấy thành công")
                 .data(products)
                 .build();
 
@@ -73,7 +73,7 @@ public class ProductController {
 
         ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product retrieved successfully")
+                .message("Sản phẩm được lấy thành công")
                 .data(product)
                 .build();
 
@@ -94,7 +94,7 @@ public class ProductController {
 
         ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Product created successfully")
+                .message("Sản phẩm được tạo thành công")
                 .data(product)
                 .build();
 
@@ -116,7 +116,7 @@ public class ProductController {
 
         ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product updated successfully")
+                .message("Sản phẩm được cập nhật thành công")
                 .data(product)
                 .build();
 
@@ -136,7 +136,7 @@ public class ProductController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product deleted successfully")
+                .message("Đã xóa sản phẩm thành công")
                 .build();
 
         return ResponseEntity.ok(response);

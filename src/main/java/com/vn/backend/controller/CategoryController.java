@@ -41,7 +41,7 @@ public class CategoryController {
 
         ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Categories retrieved successfully")
+                .message("Danh mục được truy xuất thành công")
                 .data(categories)
                 .build();
 
@@ -60,7 +60,7 @@ public class CategoryController {
 
         ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Root categories retrieved successfully")
+                .message("Các danh mục gốc đã được truy xuất thành công")
                 .data(categories)
                 .build();
 
@@ -80,7 +80,7 @@ public class CategoryController {
 
         ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Child categories retrieved successfully")
+                .message("Các danh mục con đã được truy xuất thành công.")
                 .data(categories)
                 .build();
 
@@ -99,7 +99,7 @@ public class CategoryController {
 
         ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Category retrieved successfully")
+                .message("Danh mục được truy xuất thành công")
                 .data(category)
                 .build();
 
@@ -120,7 +120,7 @@ public class CategoryController {
 
         ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Category created successfully")
+                .message("Danh mục được tạo thành công")
                 .data(category)
                 .build();
 
@@ -142,7 +142,7 @@ public class CategoryController {
 
         ApiResponse<CategoryResponse> response = ApiResponse.<CategoryResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Category updated successfully")
+                .message("Danh mục được cập nhật thành công")
                 .data(category)
                 .build();
 
@@ -162,7 +162,7 @@ public class CategoryController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Category deleted successfully")
+                .message("Đã xóa danh mục thành công")
                 .build();
 
         return ResponseEntity.ok(response);

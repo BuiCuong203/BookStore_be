@@ -1,22 +1,25 @@
 package com.vn.backend.controller;
 
-import com.vn.backend.dto.request.LoginRequest;
-import com.vn.backend.dto.request.RefreshTokenRequest;
-import com.vn.backend.dto.request.RegisterRequest;
+import com.vn.backend.dto.request.*;
 import com.vn.backend.dto.response.ApiResponse;
 import com.vn.backend.dto.response.LoginResponse;
 import com.vn.backend.dto.response.RefreshTokenResponse;
 import com.vn.backend.service.AuthService;
+import com.vn.backend.service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
@@ -41,4 +44,22 @@ public class AuthController {
         ApiResponse<RefreshTokenResponse> res = authService.refresh(request);
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
+
+    @GetMapping("/google")
+    public RedirectView startGoogleLogin() {
+        return new RedirectView("/oauth2/authorization/google");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        ApiResponse<?> res = authService.fotgotPassword(req);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<?>> resetPassword(@RequestBody ResetPasswordRequest req) {
+        ApiResponse<?> res = authService.resetPassword(req);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
 }

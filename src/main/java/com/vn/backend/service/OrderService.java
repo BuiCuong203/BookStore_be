@@ -205,7 +205,7 @@ public class OrderService {
             Product product = cartItem.getProduct();
             if (product.getStockQuanity() < cartItem.getQuantity()) {
                 throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                    "Product '" + product.getName() + "' has insufficient stock");
+                        "Product '" + product.getName() + "' has insufficient stock");
             }
         }
 
@@ -375,11 +375,11 @@ public class OrderService {
 
         Order order = orderRepository.findByIdAndUser(id, currentUser)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND.value(),
-                    "Order not found or you don't have permission"));
+                        "Order not found or you don't have permission"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                "Only pending orders can be cancelled");
+                    "Only pending orders can be cancelled");
         }
 
         // Restore product stock

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ApplyCouponRequest {
-    @NotBlank(message = "Coupon code is required")
+    @NotBlank(message = "Cần có mã giảm giá.")
     private String couponCode;
 }
 

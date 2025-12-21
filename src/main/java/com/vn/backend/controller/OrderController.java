@@ -54,7 +54,7 @@ public class OrderController {
 
         ApiResponse<Page<OrderResponse>> response = ApiResponse.<Page<OrderResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Orders retrieved successfully")
+                .message("Đơn hàng được lấy thành công")
                 .data(orders)
                 .build();
 
@@ -83,7 +83,7 @@ public class OrderController {
 
         ApiResponse<Page<OrderResponse>> response = ApiResponse.<Page<OrderResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Your orders retrieved successfully")
+                .message("Đơn hàng của bạn đã được truy xuất thành công.")
                 .data(orders)
                 .build();
 
@@ -113,7 +113,7 @@ public class OrderController {
 
         ApiResponse<Page<OrderResponse>> response = ApiResponse.<Page<OrderResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Orders retrieved successfully")
+                .message("Đơn hàng được lấy thành công")
                 .data(orders)
                 .build();
 
@@ -132,7 +132,7 @@ public class OrderController {
 
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Order retrieved successfully")
+                .message("Đơn hàng được lấy thành công")
                 .data(order)
                 .build();
 
@@ -152,7 +152,7 @@ public class OrderController {
 
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Order created successfully")
+                .message("Đơn hàng được tạo thành công")
                 .data(order)
                 .build();
 
@@ -173,7 +173,7 @@ public class OrderController {
 
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Order status updated successfully")
+                .message("Trạng thái đơn hàng được cập nhật thành công")
                 .data(order)
                 .build();
 
@@ -192,7 +192,7 @@ public class OrderController {
 
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Order cancelled successfully")
+                .message("Đơn hàng đã được hủy thành công")
                 .data(order)
                 .build();
 
@@ -211,7 +211,7 @@ public class OrderController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Order deleted successfully")
+                .message("Đơn hàng đã được xóa thành công")
                 .build();
 
         return ResponseEntity.ok(response);

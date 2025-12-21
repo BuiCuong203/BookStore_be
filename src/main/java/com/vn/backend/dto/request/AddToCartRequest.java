@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AddToCartRequest {
-    @NotNull(message = "Product ID is required")
+    @NotNull(message = "ID sản phẩm là bắt buộc")
     private Long productId;
 
-    @NotNull(message = "Quantity is required")
-    @Min(value = 1, message = "Quantity must be at least 1")
+    @NotNull(message = "Số lượng là bắt buộc")
+    @Min(value = 1, message = "Số lượng phải tối thiểu là 1")
     private Integer quantity;
 }
 

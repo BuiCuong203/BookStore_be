@@ -58,7 +58,7 @@ public class CouponController {
 
         ApiResponse<Page<CouponResponse>> response = ApiResponse.<Page<CouponResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupons retrieved successfully")
+                .message("Mã giảm giá đã được truy xuất thành công")
                 .data(coupons)
                 .build();
 
@@ -77,7 +77,7 @@ public class CouponController {
 
         ApiResponse<List<CouponResponse>> response = ApiResponse.<List<CouponResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Available coupons retrieved successfully")
+                .message("Đã truy xuất thành công các phiếu giảm giá hiện có.")
                 .data(coupons)
                 .build();
 
@@ -96,7 +96,7 @@ public class CouponController {
 
         ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupon retrieved successfully")
+                .message("Mã giảm giá đã được lấy thành công")
                 .data(coupon)
                 .build();
 
@@ -115,7 +115,7 @@ public class CouponController {
 
         ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupon retrieved successfully")
+                .message("Mã giảm giá đã được lấy thành công")
                 .data(coupon)
                 .build();
 
@@ -136,7 +136,7 @@ public class CouponController {
 
         ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupon is valid and available")
+                .message("Mã giảm giá vẫn còn hiệu lực và có thể sử dụng.")
                 .data(coupon)
                 .build();
 
@@ -166,7 +166,7 @@ public class CouponController {
 
         ApiResponse<Map<String, Object>> response = ApiResponse.<Map<String, Object>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Discount calculated successfully")
+                .message("Tính chiết khấu thành công")
                 .data(result)
                 .build();
 
@@ -187,7 +187,7 @@ public class CouponController {
 
         ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Coupon created successfully")
+                .message("Phiếu giảm giá được tạo thành công")
                 .data(coupon)
                 .build();
 
@@ -209,7 +209,7 @@ public class CouponController {
 
         ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupon updated successfully")
+                .message("Phiếu giảm giá được cập nhật thành công")
                 .data(coupon)
                 .build();
 
@@ -229,7 +229,7 @@ public class CouponController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Coupon deleted successfully")
+                .message("Đã xóa phiếu giảm giá thành công")
                 .build();
 
         return ResponseEntity.ok(response);

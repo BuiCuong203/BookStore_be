@@ -56,7 +56,7 @@ public class ReviewController {
 
         ApiResponse<Page<ReviewResponse>> response = ApiResponse.<Page<ReviewResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Reviews retrieved successfully")
+                .message("Đã truy xuất thành công các bài đánh giá")
                 .data(reviews)
                 .build();
 
@@ -86,7 +86,7 @@ public class ReviewController {
 
         ApiResponse<Page<ReviewResponse>> response = ApiResponse.<Page<ReviewResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Product reviews retrieved successfully")
+                .message("Đã truy xuất thành công các đánh giá sản phẩm.")
                 .data(reviews)
                 .build();
 
@@ -116,7 +116,7 @@ public class ReviewController {
 
         ApiResponse<Page<ReviewResponse>> response = ApiResponse.<Page<ReviewResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Reviews retrieved successfully")
+                .message("Đã truy xuất thành công các bài đánh giá")
                 .data(reviews)
                 .build();
 
@@ -146,7 +146,7 @@ public class ReviewController {
 
         ApiResponse<Page<ReviewResponse>> response = ApiResponse.<Page<ReviewResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Your reviews retrieved successfully")
+                .message("Đánh giá của bạn đã được truy xuất thành công.")
                 .data(reviews)
                 .build();
 
@@ -165,7 +165,7 @@ public class ReviewController {
 
         ApiResponse<ReviewResponse> response = ApiResponse.<ReviewResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Review retrieved successfully")
+                .message("Đã truy xuất đánh giá thành công")
                 .data(review)
                 .build();
 
@@ -185,7 +185,7 @@ public class ReviewController {
 
         ApiResponse<Map<String, Object>> response = ApiResponse.<Map<String, Object>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Rating statistics retrieved successfully")
+                .message("Số liệu thống kê xếp hạng đã được truy xuất thành công.")
                 .data(stats)
                 .build();
 
@@ -206,7 +206,7 @@ public class ReviewController {
 
         ApiResponse<ReviewResponse> response = ApiResponse.<ReviewResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Review created successfully")
+                .message("Đánh giá được tạo thành công")
                 .data(review)
                 .build();
 
@@ -228,7 +228,7 @@ public class ReviewController {
 
         ApiResponse<ReviewResponse> response = ApiResponse.<ReviewResponse>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Review updated successfully")
+                .message("Đã cập nhật đánh giá thành công")
                 .data(review)
                 .build();
 
@@ -248,7 +248,7 @@ public class ReviewController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Review deleted successfully")
+                .message("Đã xóa đánh giá thành công")
                 .build();
 
         return ResponseEntity.ok(response);
@@ -267,7 +267,7 @@ public class ReviewController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Review deleted successfully")
+                .message("Đã xóa đánh giá thành công")
                 .build();
 
         return ResponseEntity.ok(response);

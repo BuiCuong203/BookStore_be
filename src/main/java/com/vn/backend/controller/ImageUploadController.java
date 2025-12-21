@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/uploads")
+@RequestMapping("/api/v1/uploads")
 public class ImageUploadController {
 
     private final CloudinaryService cloudinaryService;
@@ -25,7 +25,7 @@ public class ImageUploadController {
     ) throws Exception {
         var res = cloudinaryService.upload(file, folder);
         return ApiResponse.<UploadResult>builder()
-                .message("Upload successful")
+                .message("Tải lên thành công")
                 .data(res)
                 .build();
     }

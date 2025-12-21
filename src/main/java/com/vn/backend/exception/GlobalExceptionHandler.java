@@ -1,5 +1,6 @@
 package com.vn.backend.exception;
 
+import com.vn.backend.dto.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.nio.file.AccessDeniedException;
 import java.time.OffsetDateTime;
@@ -72,7 +74,7 @@ public class GlobalExceptionHandler {
         String details = fieldErrors.entrySet().stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("; "));
-        String message = "Validation failed" + (details.isEmpty() ? "" : " - " + details);
+        String message = "Xác thực không thành công" + (details.isEmpty() ? "" : " - " + details);
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -84,7 +86,7 @@ public class GlobalExceptionHandler {
         String details = fieldErrors.entrySet().stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("; "));
-        String message = "Validation failed" + (details.isEmpty() ? "" : " - " + details);
+        String message = "Xác thực không thành công" + (details.isEmpty() ? "" : " - " + details);
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -94,7 +96,7 @@ public class GlobalExceptionHandler {
         String details = ex.getConstraintViolations().stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining("; "));
-        String message = "Constraint violation" + (details.isEmpty() ? "" : " - " + details);
+        String message = "Vi phạm ràng buộc" + (details.isEmpty() ? "" : " - " + details);
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -103,7 +105,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
                                                             HttpServletRequest request) {
         String required = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
-        String message = String.format("Parameter type mismatch - %s requires %s, value '%s'",
+        String message = String.format("Lỗi không khớp kiểu tham số - %s yêu cầu %s, giá trị là '%s'",
                 ex.getName(), required, String.valueOf(ex.getValue()));
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
@@ -111,7 +113,7 @@ public class GlobalExceptionHandler {
     /* -------- Body không parse được / JSON sai định dạng -------- */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
-        String message = "Malformed JSON request";
+        String message = "Yêu cầu JSON không đúng định dạng";
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -119,7 +121,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingParam(MissingServletRequestParameterException ex,
                                                             HttpServletRequest request) {
-        String message = "Missing required parameter - " + ex.getParameterName();
+        String message = "Thiếu tham số bắt buộc - " + ex.getParameterName();
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -127,7 +129,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                   HttpServletRequest request) {
-        String message = "Method not allowed - " + ex.getMethod();
+        String message = "Phương pháp không được phép - " + ex.getMethod();
         return build(HttpStatus.METHOD_NOT_ALLOWED, message, request);
     }
 
@@ -135,7 +137,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpServletRequest request) {
-        String message = "Unsupported media type" + (ex.getContentType() != null ? " - " + ex.getContentType() : "");
+        String message = "Loại phương tiện không được hỗ trợ" + (ex.getContentType() != null ? " - " + ex.getContentType() : "");
         return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, message, request);
     }
 
@@ -148,28 +150,39 @@ public class GlobalExceptionHandler {
     /* -------- User không tồn tại (Spring Security) -------- */
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException ex, HttpServletRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "User not found";
+        String message = ex.getMessage() != null ? ex.getMessage() : "Không tìm thấy người dùng";
         return build(HttpStatus.UNAUTHORIZED, message, request);
     }
 
     /* -------- Sai thông tin đăng nhập (Spring Security) -------- */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "Invalid email or password";
+        String message = ex.getMessage() != null ? ex.getMessage() : "Email hoặc mật khẩu không hợp lệ";
         return build(HttpStatus.UNAUTHORIZED, message, request);
     }
 
     /* -------- Lỗi xác thực chung (Spring Security) -------- */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "Authentication failed";
+        String message = ex.getMessage() != null ? ex.getMessage() : "Xác thực không thành công";
         return build(HttpStatus.UNAUTHORIZED, message, request);
     }
 
     /* -------------------- Fallback -------------------- */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
-        log.error("Unhandled exception at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
+        log.error("Lỗi ngoại lệ chưa được xử lý tại {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi máy chủ nội bộ", request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResource(NoResourceFoundException ex) {
+        // Log ở mức WARN nếu cần
+        ApiResponse<Void> body = ApiResponse.<Void>builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message("Không tìm thấy")
+                .data(null)
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 }
