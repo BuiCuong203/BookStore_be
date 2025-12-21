@@ -1,7 +1,8 @@
 package com.vn.backend.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,9 +16,12 @@ public class CreateOrderRequest {
     @NotBlank(message = "Address is required")
     private String address;
 
-    @NotBlank(message = "Payment method is required")
+    @NotBlank(message = "Payment method is required (COD, VNPAY, MOMO, BANKING)")
     private String methodPayment;
 
     private String note;
+    
+    // Danh sách ID các CartItem được chọn (null hoặc empty = mua tất cả)
+    private List<Long> selectedCartItemIds;
 }
 

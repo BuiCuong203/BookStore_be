@@ -1,9 +1,7 @@
 package com.vn.backend.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import com.vn.backend.util.enums.OrderStatus;
 import com.vn.backend.util.enums.PaymentMethod;
 import com.vn.backend.util.enums.PaymentStatus;
 
@@ -16,19 +14,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderResponse {
+public class PaymentResponse {
     private Long id;
-    private Long customerId;
-    private String customerName;
-    private String customerEmail;
-    private String address;
-    private OrderStatus status;
-    private PaymentMethod methodPayment;
+    private Long orderId;
+    private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;
-    private Long totalAmount;
-    private Integer totalItem;
-    private List<OrderItemResponse> items;
+    private Long amount;
+    private String transactionId;
+    private LocalDateTime transactionTime;
+    private String paymentInfo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-
