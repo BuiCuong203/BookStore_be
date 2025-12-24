@@ -4,6 +4,7 @@ import com.vn.backend.dto.request.*;
 import com.vn.backend.dto.response.ApiResponse;
 import com.vn.backend.dto.response.LoginResponse;
 import com.vn.backend.dto.response.RefreshTokenResponse;
+import com.vn.backend.dto.response.UserResponse;
 import com.vn.backend.service.AuthService;
 import com.vn.backend.service.EmailService;
 import jakarta.validation.Valid;
@@ -60,6 +61,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<?>> resetPassword(@RequestBody ResetPasswordRequest req) {
         ApiResponse<?> res = authService.resetPassword(req);
         return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
+        ApiResponse<UserResponse> response = authService.getCurrentUserInfo();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
 }

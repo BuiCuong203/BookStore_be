@@ -5,9 +5,11 @@ import com.vn.backend.dto.request.*;
 import com.vn.backend.dto.response.ApiResponse;
 import com.vn.backend.dto.response.LoginResponse;
 import com.vn.backend.dto.response.RefreshTokenResponse;
+import com.vn.backend.dto.response.UserResponse;
 import com.vn.backend.exception.AppException;
 import com.vn.backend.model.*;
 import com.vn.backend.repository.*;
+import com.vn.backend.util.enums.RoleEnum;
 import io.jsonwebtoken.Claims;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +21,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -298,7 +302,45 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public ApiResponse<UserResponse> getCurrentUserInfo() {
+        User user = getCurrentUser();
+
+        UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .isActive(user.isActive())
+                .role(
+                        user.getRoles().stream()
+                                .map(Role::getName)
+                                .map(RoleEnum::fromDb)
+                                .findFirst()
+                                .orElse(null)
+                )
+                .avatarUrl(user.getAvatarUrl())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+
+        return ApiResponse.<UserResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Lấy thông tin người dùng thành công")
+                .data(userResponse)
+                .build();
+    }
+
+
     private long getRefreshExpSeconds() {
         return Long.getLong("jwt.refreshExpMs", 604800000) / 1000L;
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) return null;
+        String emails = authentication.getName();
+        return userRepository.findByEmail(emails).orElse(null);
     }
 }
