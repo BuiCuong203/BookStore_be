@@ -4,6 +4,7 @@ import com.vn.backend.dto.request.CreateCategoryRequest;
 import com.vn.backend.dto.request.UpdateCategoryRequest;
 import com.vn.backend.dto.response.ApiResponse;
 import com.vn.backend.dto.response.CategoryResponse;
+import com.vn.backend.dto.response.PagedResponse;
 import com.vn.backend.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -13,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,18 +36,15 @@ public class CategoryController {
      */
     @GetMapping
     @Operation(summary = "Get all categories", description = "Get all categories")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        log.info("Getting all categories");
+    public ApiResponse<PagedResponse<CategoryResponse>> getAllCategories(
+            @RequestParam(required = false) String keyword,
+            Pageable pageable) {
 
-        List<CategoryResponse> categories = categoryService.getAllCategories();
-
-        ApiResponse<List<CategoryResponse>> response = ApiResponse.<List<CategoryResponse>>builder()
+        return ApiResponse.<PagedResponse<CategoryResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Danh mục được truy xuất thành công")
-                .data(categories)
+                .data(categoryService.getAllCategories(keyword, pageable))
+                .message("Lấy danh sách categories thành công")
                 .build();
-
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -166,6 +165,18 @@ public class CategoryController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    // Search categories với keyword, page, size, sort
+    @GetMapping("/search")
+    public ApiResponse<List<CategoryResponse>> searchCategories(
+            @RequestParam(required = false) String keyword,
+            Pageable pageable) {
+        return ApiResponse.<List<CategoryResponse>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Tìm kiếm categories thành công")
+                .data(categoryService.searchCategories(keyword, pageable))
+                .build();
     }
 }
 

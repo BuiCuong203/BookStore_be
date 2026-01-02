@@ -2,12 +2,13 @@ package com.vn.backend.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.vn.backend.dto.response.ApiResponse;
+import com.vn.backend.dto.response.ImageUploadResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class CloudinaryService {
@@ -18,41 +19,34 @@ public class CloudinaryService {
         this.cloudinary = cloudinary;
     }
 
-    public UploadResult upload(MultipartFile file, String folder) throws Exception {
+    public ApiResponse<ImageUploadResponse> upload(MultipartFile file) throws Exception {
         // kiểm tra content-type cơ bản
         String ct = file.getContentType();
         if (ct == null || !(ct.startsWith("image/") || ct.startsWith("video/") || ct.equals("application/pdf"))) {
             throw new IllegalArgumentException("Unsupported file type: " + ct);
         }
 
-        String publicId = folder + "/" + UUID.randomUUID();
-        try (InputStream is = file.getInputStream()) {
-            Map<?, ?> res = cloudinary.uploader().upload(is, ObjectUtils.asMap(
-                    "public_id", publicId,
-                    "folder", folder,
-                    "resource_type", "auto",
-                    "overwrite", false,
-                    "use_filename", true,
-                    "unique_filename", true
-            ));
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "auto",
+                "overwrite", false,
+                "use_filename", true,
+                "unique_filename", true
+        ));
 
-            return new UploadResult(
-                    (String) res.get("public_id"),
-                    (String) res.get("secure_url"),
-                    (String) res.get("format"),
-                    ((Number) res.get("bytes")).longValue(),
-                    (String) res.get("resource_type")
-            );
-        }
+        Map<String, String> result = new HashMap<>();
+        result.put("url", uploadResult.get("secure_url").toString());
+        result.put("id", uploadResult.get("public_id").toString());
+
+        ImageUploadResponse response = new ImageUploadResponse(result.get("url"), result.get("id"));
+
+        return ApiResponse.<ImageUploadResponse>builder()
+                .message("Tải lên thành công")
+                .data(response)
+                .build();
     }
 
     public boolean deleteByPublicId(String publicId) throws Exception {
-        Map<?, ?> res = cloudinary.uploader().destroy(publicId, ObjectUtils.asMap(
-                "resource_type", "image"
-        ));
+        Map<?, ?> res = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         return res.get("result").equals("ok");
-    }
-
-    public record UploadResult(String publicId, String url, String format, long bytes, String resourceType) {
     }
 }

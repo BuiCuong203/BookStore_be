@@ -1,10 +1,11 @@
 package com.vn.backend.controller;
 
 import com.vn.backend.dto.response.ApiResponse;
+import com.vn.backend.dto.response.ImageUploadResponse;
 import com.vn.backend.service.CloudinaryService;
-import com.vn.backend.service.CloudinaryService.UploadResult;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,15 +20,11 @@ public class ImageUploadController {
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
-    public ApiResponse<UploadResult> upload(
-            @RequestPart("file") @NotNull MultipartFile file,
-            @RequestParam(value = "folder", defaultValue = "my-app/uploads") String folder
+    public ResponseEntity<ApiResponse<ImageUploadResponse>> upload(
+            @RequestPart("file") @NotNull MultipartFile file
     ) throws Exception {
-        var res = cloudinaryService.upload(file, folder);
-        return ApiResponse.<UploadResult>builder()
-                .message("Tải lên thành công")
-                .data(res)
-                .build();
+        var res = cloudinaryService.upload(file);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
     @DeleteMapping("/{publicId}")
