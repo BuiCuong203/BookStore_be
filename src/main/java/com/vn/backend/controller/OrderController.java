@@ -3,7 +3,9 @@ package com.vn.backend.controller;
 import com.vn.backend.dto.request.CreateOrderRequest;
 import com.vn.backend.dto.request.UpdateOrderStatusRequest;
 import com.vn.backend.dto.response.ApiResponse;
+import com.vn.backend.dto.response.OrderDashboardResponse;
 import com.vn.backend.dto.response.OrderResponse;
+import com.vn.backend.dto.response.PagedResponse;
 import com.vn.backend.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,30 +37,18 @@ public class OrderController {
     /**
      * Get all orders (Admin)
      */
-    @GetMapping("/admin/all")
+    @GetMapping()
     @Operation(summary = "Get all orders", description = "Get all orders with pagination (Admin only)")
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDir) {
+    public ApiResponse<PagedResponse<OrderResponse>> getAllOrders(
+            @RequestParam(required = false) String keyword,
+            Pageable pageable) {
+        PagedResponse<OrderResponse> orders = orderService.getAllOrders(keyword, pageable);
 
-        log.info("Admin getting all orders - page: {}, size: {}", page, size);
-
-        Sort sort = sortDir.equalsIgnoreCase("ASC")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<OrderResponse> orders = orderService.getAllOrders(pageable);
-
-        ApiResponse<Page<OrderResponse>> response = ApiResponse.<Page<OrderResponse>>builder()
+        return ApiResponse.<PagedResponse<OrderResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Đơn hàng được lấy thành công")
                 .data(orders)
+                .message("Lấy danh sách đơn hàng thành công")
                 .build();
-
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -215,6 +205,18 @@ public class OrderController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Get dashboard statistics", description = "Get aggregated stats for dashboard")
+    public ApiResponse<OrderDashboardResponse> getDashboardStats() {
+        OrderDashboardResponse stats = orderService.getDashboardStats();
+
+        return ApiResponse.<OrderDashboardResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Lấy dữ liệu thống kê thành công")
+                .data(stats)
+                .build();
     }
 }
 

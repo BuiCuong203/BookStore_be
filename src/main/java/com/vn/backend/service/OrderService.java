@@ -1,40 +1,33 @@
 package com.vn.backend.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
 import com.vn.backend.dto.request.CreateOrderRequest;
 import com.vn.backend.dto.request.UpdateOrderStatusRequest;
+import com.vn.backend.dto.response.OrderDashboardResponse;
 import com.vn.backend.dto.response.OrderItemResponse;
 import com.vn.backend.dto.response.OrderResponse;
+import com.vn.backend.dto.response.PagedResponse;
 import com.vn.backend.exception.AppException;
-import com.vn.backend.model.Cart;
-import com.vn.backend.model.CartItem;
-import com.vn.backend.model.Order;
-import com.vn.backend.model.OrderItem;
-import com.vn.backend.model.Product;
-import com.vn.backend.model.User;
-import com.vn.backend.repository.CartItemRepository;
-import com.vn.backend.repository.CartRepository;
-import com.vn.backend.repository.OrderItemRepository;
-import com.vn.backend.repository.OrderRepository;
-import com.vn.backend.repository.ProductRepository;
-import com.vn.backend.repository.UserRepository;
+import com.vn.backend.model.*;
+import com.vn.backend.repository.*;
 import com.vn.backend.util.enums.OrderStatus;
 import com.vn.backend.util.enums.PaymentMethod;
 import com.vn.backend.util.enums.PaymentStatus;
-
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -103,13 +96,43 @@ public class OrderService {
     /**
      * Admin: lấy tất cả đơn hàng có phân trang
      */
-    public Page<OrderResponse> getAllOrders(Pageable pageable) {
-        log.info("Getting all orders with pagination");
-        return orderRepository.findAll(pageable)
+    public PagedResponse<OrderResponse> getAllOrders(String keyword, Pageable pageable) {
+        Pageable pageableWithDefaultSort = pageable;
+        if (pageable.getSort().isUnsorted()) {
+            Sort defaultSort = Sort.by(Sort.Direction.DESC, "id");
+            pageableWithDefaultSort = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    defaultSort
+            );
+        }
+
+        Page<Order> orders;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            orders = orderRepository.findByKeyword(keyword.trim(), pageableWithDefaultSort);
+        } else {
+            orders = orderRepository.findAll(pageableWithDefaultSort);
+        }
+
+        List<OrderResponse> orderResponses = orders.getContent().stream()
                 .map(order -> {
                     List<OrderItem> items = orderItemRepository.findByOrder(order);
                     return toOrderResponse(order, items);
-                });
+                })
+                .collect(Collectors.toList());
+
+        PagedResponse<OrderResponse> response = PagedResponse.<OrderResponse>builder()
+                .data(orderResponses)
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .currentPage(orders.getNumber())
+                .pageSize(orders.getSize())
+                .hasNext(orders.hasNext())
+                .hasPrevious(orders.hasPrevious())
+                .build();
+
+        return response;
     }
 
     /**
@@ -183,12 +206,12 @@ public class OrderService {
         if (request.getSelectedCartItemIds() != null && !request.getSelectedCartItemIds().isEmpty()) {
             // Chỉ lấy các item được chọn
             cartItems = cartItemRepository.findAllById(request.getSelectedCartItemIds());
-            
+
             // Kiểm tra các item có thuộc giỏ của user không
             for (CartItem item : cartItems) {
                 if (!item.getCart().getId().equals(cart.getId())) {
-                    throw new AppException(HttpStatus.FORBIDDEN.value(), 
-                        "Cart item does not belong to your cart");
+                    throw new AppException(HttpStatus.FORBIDDEN.value(),
+                            "Cart item does not belong to your cart");
                 }
             }
         } else {
@@ -213,7 +236,7 @@ public class OrderService {
         Long totalAmount = cartItems.stream()
                 .mapToLong(CartItem::getTotal)
                 .sum();
-        
+
         int totalItem = cartItems.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
@@ -223,14 +246,14 @@ public class OrderService {
         try {
             paymentMethod = PaymentMethod.valueOf(request.getMethodPayment().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new AppException(HttpStatus.BAD_REQUEST.value(), 
-                "Invalid payment method. Accepted: COD, VNPAY, MOMO, BANKING");
+            throw new AppException(HttpStatus.BAD_REQUEST.value(),
+                    "Invalid payment method. Accepted: COD, VNPAY, MOMO, BANKING");
         }
 
         // Xác định trạng thái thanh toán ban đầu
-        PaymentStatus paymentStatus = (paymentMethod == PaymentMethod.COD) 
-            ? PaymentStatus.UNPAID 
-            : PaymentStatus.UNPAID; // Online payment cũng UNPAID cho đến khi xác nhận
+        PaymentStatus paymentStatus = (paymentMethod == PaymentMethod.COD)
+                ? PaymentStatus.UNPAID
+                : PaymentStatus.UNPAID; // Online payment cũng UNPAID cho đến khi xác nhận
 
         // Tạo đơn hàng
         Order order = Order.builder()
@@ -324,7 +347,7 @@ public class OrderService {
         // Validate status transition
         OrderStatus currentStatus = order.getStatus();
         OrderStatus newStatus;
-        
+
         try {
             newStatus = OrderStatus.valueOf(request.getStatus().toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -419,5 +442,44 @@ public class OrderService {
         orderRepository.delete(order);
 
         log.info("Order deleted successfully with id: {}", id);
+    }
+
+    public OrderDashboardResponse getDashboardStats() {
+        // 1. Lấy tổng doanh thu
+        Double totalRevenue = orderRepository.sumTotalAmount();
+        if (totalRevenue == null) totalRevenue = 0.0;
+
+        // 2. Lấy thống kê theo trạng thái
+        List<Object[]> statusCounts = orderRepository.countOrdersByStatus();
+
+        long totalOrders = 0;
+        long deliveringOrders = 0;
+        List<OrderDashboardResponse.OrderStatusStat> stats = new ArrayList<>();
+
+        for (Object[] row : statusCounts) {
+            OrderStatus status = (OrderStatus) row[0]; // Giả sử status là Enum
+            Long count = (Long) row[1];
+
+            // Cộng dồn tổng số đơn
+            totalOrders += count;
+
+            // Check đơn đang giao
+            if (status == OrderStatus.DELIVERED) {
+                deliveringOrders = count;
+            }
+
+            // Add vào list cho biểu đồ
+            stats.add(OrderDashboardResponse.OrderStatusStat.builder()
+                    .status(status.name())
+                    .count(count)
+                    .build());
+        }
+
+        return OrderDashboardResponse.builder()
+                .totalOrders(totalOrders)
+                .totalRevenue(totalRevenue)
+                .deliveringOrders(deliveringOrders)
+                .statusBreakdown(stats)
+                .build();
     }
 }
