@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -31,5 +32,8 @@ public class ProductResponse {
     private Integer ratingCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private List<AuthorResponse> authors;
+    private List<ProductImageResponse> images;
 }
 

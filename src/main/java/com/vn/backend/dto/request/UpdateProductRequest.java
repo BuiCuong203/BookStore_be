@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -41,5 +42,9 @@ public class UpdateProductRequest {
     private String publisher;
 
     private LocalDateTime publisherDate;
+
+    private List<CreateAuthorRequest> authors;
+
+    private List<CreateProductImageRequest> images;
 }
 

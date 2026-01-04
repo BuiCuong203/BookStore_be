@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -52,6 +54,12 @@ public class Product {
 
     @Column(name = "publisher", nullable = false, length = 255)
     String publisher;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Author> authors = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images;
 
     @Column(name = "publisher_date", nullable = false)
     LocalDateTime publisherDate;

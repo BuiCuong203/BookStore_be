@@ -3,6 +3,7 @@ package com.vn.backend.controller;
 import com.vn.backend.dto.request.CreateProductRequest;
 import com.vn.backend.dto.request.UpdateProductRequest;
 import com.vn.backend.dto.response.ApiResponse;
+import com.vn.backend.dto.response.PagedResponse;
 import com.vn.backend.dto.response.ProductResponse;
 import com.vn.backend.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,10 +14,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,29 +34,15 @@ public class ProductController {
      */
     @GetMapping
     @Operation(summary = "Get all products", description = "Get all products with pagination and sorting")
-    public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAllProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDir) {
+    public ApiResponse<PagedResponse<ProductResponse>> getAllProducts(
+            @RequestParam(required = false) String keyword,
+            Pageable pageable) {
 
-        log.info("Getting all products - page: {}, size: {}, sortBy: {}, sortDir: {}",
-                page, size, sortBy, sortDir);
-
-        Sort sort = sortDir.equalsIgnoreCase("ASC")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<ProductResponse> products = productService.getAllProducts(pageable);
-
-        ApiResponse<Page<ProductResponse>> response = ApiResponse.<Page<ProductResponse>>builder()
+        return ApiResponse.<PagedResponse<ProductResponse>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Sản phẩm được lấy thành công")
-                .data(products)
+                .data(productService.getAllProducts(keyword, pageable))
+                .message("Lấy danh sách products thành công")
                 .build();
-
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -86,20 +70,18 @@ public class ProductController {
     @PostMapping
     @SecurityRequirement(name = "bearer-key")
     @Operation(summary = "Create product", description = "Create a new product (Admin only)")
-    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
-            @Valid @RequestBody CreateProductRequest request) {
-        log.info("Creating new product: {}", request.getName());
-
+    public ApiResponse<ProductResponse> createProduct(
+            @Valid @RequestBody CreateProductRequest request
+    ) {
         ProductResponse product = productService.createProduct(request);
 
-        ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
+        return ApiResponse.<ProductResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
                 .message("Sản phẩm được tạo thành công")
                 .data(product)
                 .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
     /**
      * Update product
@@ -107,20 +89,18 @@ public class ProductController {
     @PutMapping("/{id}")
     @SecurityRequirement(name = "bearer-key")
     @Operation(summary = "Update product", description = "Update an existing product (Admin only)")
-    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
+    public ApiResponse<ProductResponse> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody UpdateProductRequest request) {
         log.info("Updating product with id: {}", id);
 
         ProductResponse product = productService.updateProduct(id, request);
 
-        ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
+        return ApiResponse.<ProductResponse>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Sản phẩm được cập nhật thành công")
                 .data(product)
                 .build();
-
-        return ResponseEntity.ok(response);
     }
 
     /**
