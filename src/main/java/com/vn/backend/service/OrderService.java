@@ -1,22 +1,9 @@
 package com.vn.backend.service;
 
-import com.vn.backend.dto.request.CreateOrderRequest;
-import com.vn.backend.dto.request.UpdateOrderStatusRequest;
-import com.vn.backend.dto.response.OrderDashboardResponse;
-import com.vn.backend.dto.response.OrderItemResponse;
-import com.vn.backend.dto.response.OrderResponse;
-import com.vn.backend.dto.response.PagedResponse;
-import com.vn.backend.exception.AppException;
-import com.vn.backend.model.*;
-import com.vn.backend.repository.*;
-import com.vn.backend.util.enums.OrderStatus;
-import com.vn.backend.util.enums.PaymentMethod;
-import com.vn.backend.util.enums.PaymentStatus;
-import jakarta.transaction.Transactional;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,9 +12,34 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.vn.backend.dto.request.CreateOrderRequest;
+import com.vn.backend.dto.request.UpdateOrderStatusRequest;
+import com.vn.backend.dto.response.OrderDashboardResponse;
+import com.vn.backend.dto.response.OrderItemResponse;
+import com.vn.backend.dto.response.OrderResponse;
+import com.vn.backend.dto.response.PagedResponse;
+import com.vn.backend.exception.AppException;
+import com.vn.backend.model.Cart;
+import com.vn.backend.model.CartItem;
+import com.vn.backend.model.Order;
+import com.vn.backend.model.OrderItem;
+import com.vn.backend.model.Product;
+import com.vn.backend.model.User;
+import com.vn.backend.repository.CartItemRepository;
+import com.vn.backend.repository.CartRepository;
+import com.vn.backend.repository.OrderItemRepository;
+import com.vn.backend.repository.OrderRepository;
+import com.vn.backend.repository.ProductRepository;
+import com.vn.backend.repository.UserRepository;
+import com.vn.backend.util.enums.OrderStatus;
+import com.vn.backend.util.enums.PaymentMethod;
+import com.vn.backend.util.enums.PaymentStatus;
+
+import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -251,9 +263,11 @@ public class OrderService {
         }
 
         // Xác định trạng thái thanh toán ban đầu
+        // COD: UNPAID (chờ giao hàng rồi thu tiền)
+        // Online payment (VNPAY, MOMO, BANKING): PENDING (chờ xác nhận từ gateway)
         PaymentStatus paymentStatus = (paymentMethod == PaymentMethod.COD)
                 ? PaymentStatus.UNPAID
-                : PaymentStatus.UNPAID; // Online payment cũng UNPAID cho đến khi xác nhận
+                : PaymentStatus.PENDING;
 
         // Tạo đơn hàng
         Order order = Order.builder()
@@ -269,8 +283,10 @@ public class OrderService {
         order = orderRepository.save(order);
         log.info("Order created with id: {}", order.getId());
 
-        // Tạo payment record
-        paymentService.createPayment(order);
+        // Tạo payment record chỉ cho COD (online payment sẽ tạo khi gọi gateway)
+        if (paymentMethod == PaymentMethod.COD) {
+            paymentService.createPayment(order);
+        }
 
         // Tạo order items và trừ tồn kho
         final Order finalOrder = order;
@@ -357,30 +373,53 @@ public class OrderService {
         // Define valid transitions
         switch (currentStatus) {
             case PENDING:
-                if (newStatus != OrderStatus.CONFIRMED) {
-                    throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid status transition from PENDING");
+                if (newStatus != OrderStatus.CONFIRMED && newStatus != OrderStatus.CANCELLED) {
+                    throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                        "From PENDING, can only move to CONFIRMED or CANCELLED");
                 }
                 break;
             case CONFIRMED:
-                if (newStatus != OrderStatus.PROCESSING) {
-                    throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid status transition from CONFIRMED");
+                if (newStatus != OrderStatus.PROCESSING && newStatus != OrderStatus.CANCELLED) {
+                    throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                        "From CONFIRMED, can only move to PROCESSING or CANCELLED");
                 }
                 break;
             case PROCESSING:
                 if (newStatus != OrderStatus.SHIPPING) {
-                    throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid status transition from PROCESSING");
+                    throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                        "From PROCESSING, can only move to SHIPPING");
                 }
                 break;
             case SHIPPING:
                 if (newStatus != OrderStatus.DELIVERED) {
-                    throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid status transition from SHIPPING");
+                    throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                        "From SHIPPING, can only move to DELIVERED");
                 }
                 break;
+            case DELIVERED:
+                throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                    "Order already delivered, no further status changes allowed");
+            case CANCELLED:
+                throw new AppException(HttpStatus.BAD_REQUEST.value(), 
+                    "Cancelled orders cannot be updated");
             default:
                 throw new AppException(HttpStatus.BAD_REQUEST.value(), "Invalid current status");
         }
 
         order.setStatus(newStatus);
+        
+        // Tự động xác nhận thanh toán COD khi giao hàng thành công
+        if (newStatus == OrderStatus.DELIVERED && order.getMethodPayment() == PaymentMethod.COD
+                && order.getPaymentStatus() == PaymentStatus.UNPAID) {
+            log.info("Auto-confirming COD payment for delivered order {}", id);
+            try {
+                paymentService.confirmCODPayment(id);
+                order.setPaymentStatus(PaymentStatus.PAID);
+            } catch (Exception e) {
+                log.error("Failed to auto-confirm COD payment for order {}", id, e);
+            }
+        }
+        
         order = orderRepository.save(order);
 
         List<OrderItem> items = orderItemRepository.findByOrder(order);
@@ -400,9 +439,9 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND.value(),
                         "Order not found or you don't have permission"));
 
-        if (order.getStatus() != OrderStatus.PENDING) {
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             throw new AppException(HttpStatus.BAD_REQUEST.value(),
-                    "Only pending orders can be cancelled");
+                    "Only pending or confirmed orders can be cancelled by customer");
         }
 
         // Restore product stock
@@ -411,11 +450,24 @@ public class OrderService {
             Product product = item.getProduct();
             product.setStockQuanity(product.getStockQuanity() + item.getQuantity());
             productRepository.save(product);
+            log.debug("Restored {} units of product {} (ID: {})", 
+                item.getQuantity(), product.getName(), product.getId());
         }
 
         // Hoàn tiền nếu đã thanh toán
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
-            paymentService.refundPayment(id);
+            log.info("Refunding payment for cancelled order {}", id);
+            try {
+                paymentService.refundPayment(id);
+                order.setPaymentStatus(PaymentStatus.REFUNDED);
+            } catch (Exception e) {
+                log.error("Failed to refund payment for order {}", id, e);
+                throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Order cancelled but refund failed. Please contact support.");
+            }
+        } else if (order.getPaymentStatus() == PaymentStatus.PENDING) {
+            // Nếu payment đang pending (online payment chưa hoàn tất), đánh dấu failed
+            order.setPaymentStatus(PaymentStatus.FAILED);
         }
 
         order.setStatus(OrderStatus.CANCELLED);

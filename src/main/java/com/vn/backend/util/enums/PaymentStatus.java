@@ -5,6 +5,7 @@ package com.vn.backend.util.enums;
  */
 public enum PaymentStatus {
     UNPAID,     // Chưa thanh toán
+    PENDING,    // Đang chờ thanh toán
     PAID,       // Đã thanh toán
     REFUNDED,   // Đã hoàn tiền
     FAILED      // Thanh toán thất bại

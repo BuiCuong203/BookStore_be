@@ -1,5 +1,12 @@
 package com.vn.backend.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.vn.backend.dto.request.CreateCategoryRequest;
 import com.vn.backend.dto.request.UpdateCategoryRequest;
 import com.vn.backend.dto.response.CategoryResponse;
@@ -7,6 +14,7 @@ import com.vn.backend.dto.response.PagedResponse;
 import com.vn.backend.exception.AppException;
 import com.vn.backend.model.Category;
 import com.vn.backend.repository.CategoryRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,12 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +55,6 @@ public class CategoryService {
 
     /**
      * Lấy tất cả danh mục (bao gồm cả cha và con)
-     *
      * @return Danh sách tất cả danh mục
      */
     public PagedResponse<CategoryResponse> getAllCategories(String keyword, Pageable pageable) {
@@ -93,7 +95,6 @@ public class CategoryService {
 
     /**
      * Lấy danh sách danh mục gốc (không có danh mục cha)
-     *
      * @return Danh sách danh mục gốc
      */
     public List<CategoryResponse> getRootCategories() {
@@ -105,7 +106,6 @@ public class CategoryService {
 
     /**
      * Lấy danh sách danh mục con theo ID danh mục cha
-     *
      * @param parentId ID của danh mục cha
      * @return Danh sách danh mục con
      * @throws AppException nếu danh mục cha không tồn tại
@@ -113,7 +113,7 @@ public class CategoryService {
     public List<CategoryResponse> getChildCategories(Long parentId) {
         log.info("Getting child categories for parent id: {}", parentId);
 
-        // Kiểm tra danh mục cha có tồn tại không
+        // Verify parent exists
         if (!categoryRepository.existsById(parentId)) {
             throw new AppException(HttpStatus.NOT_FOUND.value(), "Parent category not found");
         }
@@ -125,7 +125,6 @@ public class CategoryService {
 
     /**
      * Lấy thông tin chi tiết danh mục theo ID
-     *
      * @param id ID của danh mục cần lấy
      * @return Thông tin danh mục
      * @throws AppException nếu danh mục không tồn tại
@@ -139,7 +138,6 @@ public class CategoryService {
 
     /**
      * Tạo danh mục mới
-     *
      * @param request Thông tin danh mục cần tạo (tên, ID danh mục cha nếu có)
      * @return Thông tin danh mục vừa tạo
      * @throws AppException nếu danh mục cha không tồn tại (khi có parentId)
@@ -168,14 +166,13 @@ public class CategoryService {
 
     /**
      * Cập nhật thông tin danh mục
-     *
-     * @param id      ID của danh mục cần cập nhật
+     * @param id ID của danh mục cần cập nhật
      * @param request Thông tin mới (tên, parentId)
      * @return Thông tin danh mục sau khi cập nhật
      * @throws AppException nếu:
-     *                      - Danh mục không tồn tại
-     *                      - Danh mục cha không tồn tại
-     *                      - Danh mục tự tham chiếu chính nó làm cha
+     *         - Danh mục không tồn tại
+     *         - Danh mục cha không tồn tại
+     *         - Danh mục tự tham chiếu chính nó làm cha
      */
     @Transactional
     public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
@@ -184,9 +181,9 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND.value(), "Category not found"));
 
-        // Kiểm tra tính hợp lệ của parentId nếu có
+        // Validate parent category exists if parentId is provided
         if (request.getParentId() != null) {
-            // Ngăn chặn tự tham chiếu (danh mục không thể là cha của chính nó)
+            // Prevent self-referencing
             if (request.getParentId().equals(id)) {
                 throw new AppException(HttpStatus.BAD_REQUEST.value(), "Category cannot be its own parent");
             }
@@ -212,11 +209,10 @@ public class CategoryService {
 
     /**
      * Xóa danh mục
-     *
      * @param id ID của danh mục cần xóa
      * @throws AppException nếu:
-     *                      - Danh mục không tồn tại
-     *                      - Danh mục có danh mục con (phải xóa con trước)
+     *         - Danh mục không tồn tại
+     *         - Danh mục có danh mục con (phải xóa con trước)
      */
     @Transactional
     public void deleteCategory(Long id) {
