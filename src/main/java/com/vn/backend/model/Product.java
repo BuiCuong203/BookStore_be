@@ -28,10 +28,10 @@ public class Product {
     @Column(name = "name", nullable = false, length = 255)
     String name;
 
-    @Column(name = "short_description", length = 500)
+    @Column(name = "short_description",columnDefinition = "TEXT")
     String shortDescription;
 
-    @Column(name = "description", length = 1000)
+    @Column(name = "description", columnDefinition = "TEXT")
     String description;
 
     @Column(name = "dimension", nullable = false, length = 255)
@@ -40,16 +40,16 @@ public class Product {
     @Column(name = "number_of_pages")
     int numberOfPages;
 
-    @Column(name = "isbn", nullable = false, length = 20)
+    @Column(name = "isbn", nullable = false, length = 100)
     String isbn;
 
-    @Column(name = "stock_quantity", nullable = false)
+    @Column(name = "stock_quantity")
     int stockQuanity;
 
     @Column(name = "price", nullable = false)
     Long price;
 
-    @Column(name = "discount", nullable = false)
+    @Column(name = "discount")
     int discount;
 
     @Column(name = "publisher", nullable = false, length = 255)
