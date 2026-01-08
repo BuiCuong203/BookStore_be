@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "product_images")
 public class ProductImage {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     Long id;
 

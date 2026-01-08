@@ -17,7 +17,7 @@ import java.util.List;
 @Table(name = "products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     Long id;
 
@@ -28,7 +28,7 @@ public class Product {
     @Column(name = "name", nullable = false, length = 255)
     String name;
 
-    @Column(name = "short_description",columnDefinition = "TEXT")
+    @Column(name = "short_description", columnDefinition = "TEXT")
     String shortDescription;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -38,7 +38,7 @@ public class Product {
     String dimension;
 
     @Column(name = "number_of_pages")
-    int numberOfPages;
+    Integer numberOfPages;
 
     @Column(name = "isbn", nullable = false, length = 100)
     String isbn;

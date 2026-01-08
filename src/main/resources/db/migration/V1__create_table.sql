@@ -294,3 +294,15 @@ ALTER TABLE user_roles
 
 ALTER TABLE user_roles
     ADD CONSTRAINT fk_user_roles_userntIt6c FOREIGN KEY (role_id) REFERENCES roles (id);
+
+-- 1. Tắt kiểm tra khóa ngoại tạm thời
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 2. Thực hiện sửa đổi cột ID sang AUTO_INCREMENT
+-- Lưu ý: Tôi đã đổi sang BIGINT cho authors và product_images để đồng bộ với kiểu Long trong Java
+ALTER TABLE book_shop.products MODIFY COLUMN id BIGINT AUTO_INCREMENT;
+ALTER TABLE book_shop.product_images MODIFY COLUMN id BIGINT AUTO_INCREMENT;
+ALTER TABLE book_shop.authors MODIFY COLUMN id BIGINT AUTO_INCREMENT;
+
+-- 3. Bật lại kiểm tra khóa ngoại
+SET FOREIGN_KEY_CHECKS = 1;
