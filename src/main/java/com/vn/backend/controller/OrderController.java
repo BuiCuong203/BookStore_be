@@ -41,8 +41,9 @@ public class OrderController {
     @Operation(summary = "Get all orders", description = "Get all orders with pagination (Admin only)")
     public ApiResponse<PagedResponse<OrderResponse>> getAllOrders(
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
-        PagedResponse<OrderResponse> orders = orderService.getAllOrders(keyword, pageable);
+        PagedResponse<OrderResponse> orders = orderService.getAllOrders(keyword, status, pageable);
 
         return ApiResponse.<PagedResponse<OrderResponse>>builder()
                 .statusCode(HttpStatus.OK.value())

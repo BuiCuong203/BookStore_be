@@ -52,5 +52,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o.status, COUNT(o) FROM Order o GROUP BY o.status")
     List<Object[]> countOrdersByStatus();
+
+    @Query("SELECT o FROM Order o JOIN o.user u WHERE " +
+            "(:keyword IS NULL OR :keyword = '' OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "(:status IS NULL OR o.status = :status)")
+    Page<Order> findOrders(
+            @Param("keyword") String keyword,
+            @Param("status") OrderStatus status,
+            Pageable pageable
+    );
 }
 
