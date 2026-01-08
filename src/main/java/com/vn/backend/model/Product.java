@@ -1,12 +1,28 @@
 package com.vn.backend.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Data
@@ -38,19 +54,19 @@ public class Product {
     String dimension;
 
     @Column(name = "number_of_pages")
-    int numberOfPages;
+    Integer numberOfPages;
 
     @Column(name = "isbn", nullable = false, length = 20)
     String isbn;
 
     @Column(name = "stock_quantity", nullable = false)
-    int stockQuanity;
+    Integer stockQuanity;
 
     @Column(name = "price", nullable = false)
     Long price;
 
     @Column(name = "discount", nullable = false)
-    int discount;
+    Integer discount;
 
     @Column(name = "publisher", nullable = false, length = 255)
     String publisher;
@@ -68,7 +84,7 @@ public class Product {
     Double ratingAvg;
 
     @Column(name = "rating_count")
-    int ratingCount;
+    Integer ratingCount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     LocalDateTime createdAt;

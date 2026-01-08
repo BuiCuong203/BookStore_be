@@ -1,13 +1,14 @@
 package com.vn.backend.repository;
 
-import com.vn.backend.model.Category;
-import com.vn.backend.model.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.vn.backend.model.Category;
+import com.vn.backend.model.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -28,6 +29,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Top rated products
     Page<Product> findByRatingAvgGreaterThanEqual(Double minRating, Pageable pageable);
+
+    // Lọc theo khoảng rating
+    Page<Product> findByRatingAvgBetween(Double minRating, Double maxRating, Pageable pageable);
 
     // Tìm kiếm nâng cao: theo tên và danh mục
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

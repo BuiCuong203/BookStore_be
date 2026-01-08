@@ -1,5 +1,15 @@
 package com.vn.backend.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.vn.backend.dto.request.CreateProductRequest;
 import com.vn.backend.dto.request.UpdateProductRequest;
 import com.vn.backend.dto.response.AuthorResponse;
@@ -15,21 +25,11 @@ import com.vn.backend.repository.AuthorRepository;
 import com.vn.backend.repository.CategoryRepository;
 import com.vn.backend.repository.ProductImageRepository;
 import com.vn.backend.repository.ProductRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -103,26 +103,25 @@ public class ProductService {
      * Get all products with pagination
      */
     public PagedResponse<ProductResponse> getAllProducts(String keyword, Pageable pageable) {
-        Pageable pageableWithDefaultSort = pageable;
-        if (pageable.getSort().isUnsorted()) {
-            Sort defaultSort = Sort.by(Sort.Direction.DESC, "id");
-            pageableWithDefaultSort = PageRequest.of(
-                    pageable.getPageNumber(),
-                    pageable.getPageSize(),
-                    defaultSort
-            );
-        }
-
         Page<Product> products;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            products = productRepository.findByKeyword(keyword.trim(), pageableWithDefaultSort);
+            products = productRepository.findByKeyword(keyword.trim(), pageable);
         } else {
-            products = productRepository.findAll(pageableWithDefaultSort);
+            products = productRepository.findAll(pageable);
         }
 
         List<ProductResponse> productResponses = products.getContent().stream()
-                .map(this::toProductResponse)
+                .filter(product -> product != null && product.getCategory() != null)
+                .map(product -> {
+                    try {
+                        return toProductResponse(product);
+                    } catch (Exception e) {
+                        log.error("Error converting product {}: {}", product.getId(), e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(response -> response != null)
                 .collect(Collectors.toList());
 
         PagedResponse<ProductResponse> response = PagedResponse.<ProductResponse>builder()
@@ -416,6 +415,42 @@ public class ProductService {
         }
 
         return productRepository.findByRatingAvgGreaterThanEqual(minRating, pageable)
+                .map(this::toProductResponse);
+    }
+
+    /**
+     * Lấy sản phẩm theo số lượng sao
+     *
+     * @param stars    Số sao (1-5)
+     * @param pageable Phân trang
+     * @return Danh sách sản phẩm có rating trong khoảng tương ứng với số sao
+     * Ví dụ: stars=5 -> rating từ 4.5-5.0, stars=4 -> rating từ 3.5-4.5
+     */
+    public Page<ProductResponse> getProductsByStarRating(Integer stars, Pageable pageable) {
+        log.info("Getting products with {} stars", stars);
+
+        if (stars < 1 || stars > 5) {
+            throw new AppException(HttpStatus.BAD_REQUEST.value(), "Stars must be between 1 and 5");
+        }
+
+        // Xác định khoảng rating dựa trên số sao
+        double minRating;
+        double maxRating;
+
+        if (stars == 5) {
+            minRating = 4.5;
+            maxRating = 5.0;
+        } else if (stars == 1) {
+            minRating = 0.0;
+            maxRating = 1.5;
+        } else {
+            // Cho 2, 3, 4 sao: ví dụ 4 sao = 3.5 đến 4.5
+            minRating = stars - 0.5;
+            maxRating = stars + 0.5;
+        }
+
+        log.info("Rating range: {} - {}", minRating, maxRating);
+        return productRepository.findByRatingAvgBetween(minRating, maxRating, pageable)
                 .map(this::toProductResponse);
     }
 
