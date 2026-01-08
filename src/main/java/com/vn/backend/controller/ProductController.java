@@ -196,5 +196,37 @@ public class ProductController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Get products by category ID
+     */
+    @GetMapping("/by-category/{categoryId}")
+    @Operation(summary = "Get products by category", 
+               description = "Get all products filtered by category ID")
+    public ResponseEntity<ApiResponse<PagedResponse<ProductResponse>>> getProductsByCategory(
+            @PathVariable Long categoryId,
+            Pageable pageable) {
+        log.info("Getting products by category id: {}", categoryId);
+
+        var products = productService.getProductsByCategory(categoryId, pageable);
+
+        PagedResponse<ProductResponse> pagedResponse = PagedResponse.<ProductResponse>builder()
+                .data(products.getContent())
+                .totalElements(products.getTotalElements())
+                .totalPages(products.getTotalPages())
+                .currentPage(products.getNumber())
+                .pageSize(products.getSize())
+                .hasNext(products.hasNext())
+                .hasPrevious(products.hasPrevious())
+                .build();
+
+        ApiResponse<PagedResponse<ProductResponse>> response = ApiResponse.<PagedResponse<ProductResponse>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Lấy danh sách sản phẩm theo danh mục thành công")
+                .data(pagedResponse)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }
 
