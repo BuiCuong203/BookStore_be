@@ -15,8 +15,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class GoogleOAuth2SuccessHandler implements AuthenticationSuccessHandler {
+public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Autowired
     private JwtProvider jwtProvider;
 
@@ -53,6 +54,10 @@ public class GoogleOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         String accessToken = jwtProvider.generateAccessToken(authForJwt);
         String refreshToken = jwtProvider.generateRefreshToken(email);
+        String role = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(a -> a.startsWith("ROLE_"))
+                .findFirst().orElse(null);
 
         // Lưu refresh token vào DB (whitelist)
         refreshTokenRepository.save(RefreshToken.builder()
@@ -63,19 +68,12 @@ public class GoogleOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 .createdAt(LocalDateTime.now())
                 .build());
 
-        // Cách 1: trả JSON trực tiếp (dùng cho Postman & SPA)
-        resp.setStatus(200);
-        resp.setContentType("application/json;charset=UTF-8");
-        String role = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(a -> a.startsWith("ROLE_"))
-                .findFirst().orElse(null);
-
-        String body = """
-                {"statusCode":200,"message":"Login with Google successful",
-                 "data":{"accessToken":"%s","refreshToken":"%s","role":"%s"}}
-                """.formatted(accessToken, refreshToken, role);
-        resp.getWriter().write(body);
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/auth/callback")
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .queryParam("role", role)
+                .build().toUriString();
+        getRedirectStrategy().sendRedirect(req, resp, targetUrl);
     }
 }
 
