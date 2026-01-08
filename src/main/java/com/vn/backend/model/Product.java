@@ -17,7 +17,7 @@ import java.util.List;
 @Table(name = "products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     Long id;
 
@@ -43,14 +43,14 @@ public class Product {
     @Column(name = "isbn", nullable = false, length = 100)
     String isbn;
 
-    @Column(name = "stock_quantity")
-    int stockQuanity;
+    @Column(name = "stock_quantity", nullable = false)
+    Integer stockQuanity;
 
     @Column(name = "price", nullable = false)
     Long price;
 
-    @Column(name = "discount")
-    int discount;
+    @Column(name = "discount", nullable = false)
+    Integer discount;
 
     @Column(name = "publisher", nullable = false, length = 255)
     String publisher;
