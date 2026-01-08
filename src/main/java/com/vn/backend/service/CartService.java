@@ -84,10 +84,17 @@ public class CartService {
      */
     private CartItemResponse toCartItemResponse(CartItem cartItem) {
         Product product = cartItem.getProduct();
+
+        String productImage = null;
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            productImage = product.getImages().get(0).getImageUrl();
+        }
+
         return CartItemResponse.builder()
                 .id(cartItem.getId())
                 .productId(product.getId())
                 .productName(product.getName())
+                .productImage(productImage)
                 .productPrice(product.getPrice())
                 .productDiscount(product.getDiscount())
                 .quantity(cartItem.getQuantity())
