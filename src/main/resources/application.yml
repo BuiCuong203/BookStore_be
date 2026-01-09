@@ -63,6 +63,10 @@ app:
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN}
 
+ai:
+  service:
+    url: ${AI_SERVICE_URL}
+
 jwt:
   signerKey: ${JWT_SECRET}
   accessExpMs: ${JWT_EXPIRATION}

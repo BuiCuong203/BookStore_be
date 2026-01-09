@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.vn.backend.client.AIServiceClient;
+import com.vn.backend.dto.ai.GetSimilarRequest;
+import com.vn.backend.dto.ai.ProductFieldRequest;
+import com.vn.backend.dto.ai.RecommendResponse;
+import com.vn.backend.dto.ai.SemanticSearchRequest;
+import com.vn.backend.dto.response.PagedResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,12 +37,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class ProductService {
 
+    AIServiceClient aiServiceClient;
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
     AuthorRepository authorRepository;
@@ -531,4 +544,61 @@ public class ProductService {
         log.info("Stock updated successfully. New stock: {}", newStock);
         return toProductResponse(product);
     }
+
+    public List<ProductResponse> searchBySemanticSimilarity(String query) {
+        log.info("Searching similar product for query: {}", query);
+        try {
+            RecommendResponse response = aiServiceClient.searchBooks(new SemanticSearchRequest(query, 30));
+            List<Long> bookIds = response.getBookIds();
+
+            if (bookIds == null || bookIds.isEmpty()) return Collections.emptyList();
+
+            List<Product> products = getBooksOrderedByIds(bookIds);
+
+            return products.stream()
+                    .map(this::toProductResponse)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("AI Service Error: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    // Get Similar Books
+    public List<ProductResponse> getSimilarBooks(Long currentBookId) {
+        log.info("Getting similar products for id: {}", currentBookId);
+        try {
+            RecommendResponse response = aiServiceClient.getSimilarBooks(new GetSimilarRequest(currentBookId, 8));
+            List<Long> bookIds = response.getBookIds();
+
+            if (bookIds == null || bookIds.isEmpty()) return Collections.emptyList();
+
+            List<Product> products = getBooksOrderedByIds(bookIds);
+
+            // QUAN TRỌNG: Convert Entity -> DTO
+            return products.stream()
+                    .map(this::toProductResponse)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("AI Service Error: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    // Helper: Lấy sách từ DB và sort lại theo đúng thứ tự List ID đầu vào
+    private List<Product> getBooksOrderedByIds(List<Long> bookIds) {
+        // Query DB (Lúc này thứ tự có thể lộn xộn)
+        List<Product> books = productRepository.findAllById(bookIds);
+
+        // Tạo Map để tra cứu cho nhanh
+        Map<Long, Product> bookMap = books.stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        // Map lại theo list bookIds gốc để giữ thứ tự Relevance
+        return bookIds.stream()
+                .filter(bookMap::containsKey)
+                .map(bookMap::get)
+                .collect(Collectors.toList());
+    }
 }
+
