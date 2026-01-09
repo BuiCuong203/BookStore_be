@@ -18,6 +18,7 @@ import com.vn.backend.service.MoMoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/payments/momo")
+@RequestMapping("/api/v1/payments/momo")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
@@ -64,10 +65,19 @@ public class MoMoPaymentController {
      */
     @GetMapping("/callback")
     @Operation(summary = "MoMo return URL", description = "Handle redirect from MoMo after user completes payment")
-    public ResponseEntity<MoMoCallbackResponse> handleCallback(HttpServletRequest request) {
+    public void handleCallback(HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Received MoMo callback from user");
-        MoMoCallbackResponse response = moMoService.handleCallback(request);
-        return ResponseEntity.ok(response);
+        
+        // Xử lý callback để cập nhật trạng thái thanh toán
+        MoMoCallbackResponse callbackResponse = moMoService.handleCallback(request);
+        
+        // Extract orderId from the MoMo orderId (format: ORDER{id}_timestamp)
+        String momoOrderId = request.getParameter("orderId");
+        String orderIdStr = momoOrderId.split("_")[0].replace("ORDER", "");
+        Long orderId = Long.parseLong(orderIdStr);
+        
+        // Redirect to frontend
+        response.sendRedirect("http://localhost:5173/order-success?order=" + orderId);
     }
 
     /**

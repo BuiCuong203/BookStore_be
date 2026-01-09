@@ -18,6 +18,7 @@ import com.vn.backend.service.VNPayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/payments/vnpay")
+@RequestMapping("/api/v1/payments/vnpay")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
@@ -68,11 +69,16 @@ public class VNPayPaymentController {
      */
     @GetMapping("/callback")
     @Operation(summary = "VNPay return URL", description = "Handle redirect from VNPay after user completes payment")
-    public ResponseEntity<VNPayCallbackResponse> handleCallback(@RequestParam Map<String, String> params) {
+    public void handleCallback(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         log.info("Received VNPay callback from user");
         log.info("VNPay callback params count: {}", params.size());
         
-        VNPayCallbackResponse response = vnPayService.handleCallback(params);
-        return ResponseEntity.ok(response);
+        VNPayCallbackResponse callbackResponse = vnPayService.handleCallback(params);
+        
+        // Extract orderId from VNPay response
+        Long orderId = callbackResponse.getOrderId();
+        
+        // Redirect to frontend
+        response.sendRedirect("http://localhost:5173/order-success?order=" + orderId);
     }
 }
